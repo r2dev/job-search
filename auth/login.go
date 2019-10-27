@@ -30,8 +30,9 @@ func LoginWithPassword(w http.ResponseWriter, r *http.Request) {
 	password := request.Password
 	user, err := models.GetUserByUsername(username)
 	if err != nil {
-
-		log.WithError(err).Info("dont get user")
+		if err == models.NoFoundUser {
+			log.WithError(err).Info("dont get user")
+		}
 		response.Error(w, http.StatusBadRequest)
 		return
 	}
@@ -54,10 +55,10 @@ func LoginWithPassword(w http.ResponseWriter, r *http.Request) {
 
 	// Set claims
 	claims := token.Claims.(jwt.MapClaims)
-	claims["admin"] = true
+	claims["user_id"] = user.UserID.Hex()
 
 	// Generate encoded token and send it as response.
-	t, err := token.SignedString([]byte(viper.GetString("secret")))
+	t, err := token.SignedString([]byte(viper.GetString("jwt_secret")))
 	if err != nil {
 		log.WithError(err).Warn("sign error")
 		response.Error(w, http.StatusInternalServerError)

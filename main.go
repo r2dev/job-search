@@ -1,29 +1,21 @@
 package main
 
 import (
-	"fmt"
 	"hirine/auth"
+	"hirine/company"
+	"hirine/job"
 	"hirine/models"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/go-chi/jwtauth"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
-
-// func accessible(c echo.Context) error {
-// 	return c.String(http.StatusOK, "Accessible")
-// }
-
-// func restricted(c echo.Context) error {
-// 	user := c.Get("user").(*jwt.Token)
-// 	claims := user.Claims.(jwt.MapClaims)
-// 	name := claims["name"].(string)
-// 	return c.String(http.StatusOK, "Welcome "+name+"!")
-// }
 
 func main() {
 	log := logrus.New()
@@ -41,9 +33,12 @@ func main() {
 	viper.AddConfigPath("./config")
 	err := viper.ReadInConfig()
 	if err != nil { // Handle errors reading the config file
-		panic(fmt.Errorf("Fatal error config file: %s \n", err))
+		log.Panicf("Fatal error config file: %s \n", err)
 	}
 	models.InitMongo(viper.GetString("mongo_url"))
+
+	tokenAuth := jwtauth.New("HS256", []byte(viper.GetString("jwt_secret")), nil)
+
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
@@ -54,7 +49,23 @@ func main() {
 	// e.POST("/auth/verify-phone", auth.VerifyPhone)
 	// e.POST("/auth/change-password", auth.ChangePassword)
 
-	r.Post("/auth/register-phone", auth.RegisterWithPhoneNumber)
+	// r.Post("/auth/register-phone", auth.RegisterWithPhoneNumber)
+
+	r.Group(func(r chi.Router) {
+		r.Use(jwtauth.Verifier(tokenAuth))
+
+		r.Use(jwtauth.Authenticator)
+
+		r.Get("/company", company.GetCompany)
+		r.Post("/company", company.CreateCompany)
+		r.Put("/company/{id}", company.UpdateCompany)
+		r.Delete("/company/{id}", company.DeleteCompany)
+
+		r.Post("/job", job.CreateJob)
+		// r.Put("/job/{id}", company.UpdateJob)
+		// r.
+		// r.Post("/company/{id}/staff",)
+	})
 
 	// Unauthenticated route
 	// r.Get("/", accessible)

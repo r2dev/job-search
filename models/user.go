@@ -9,23 +9,27 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 type User struct {
-	Username string `bson:"username"`
-	Password string `bson:"password"`
-	Phone    string `bson:"phone"`
-	Email    string `bson:"email"`
+	UserID   primitive.ObjectID `bson:"_id"`
+	Username string             `bson:"username"`
+	Password string             `bson:"password"`
+	Phone    string             `bson:"phone"`
+	Email    string             `bson:"email"`
 }
+
+var NoFoundUser = errors.New("user no found")
 
 func GetUserByUsername(username string) (User, error) {
 	var result User
-	collection := client.Database("demo").Collection("users")
+	collection := client.Database(viper.GetString("mongo_db")).Collection("users")
 	err := collection.FindOne(context.Background(), bson.M{"username": username}).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return User{}, nil
+			return User{}, NoFoundUser
 		}
 		return User{}, err
 	}
@@ -34,7 +38,7 @@ func GetUserByUsername(username string) (User, error) {
 
 func GetUserByPhoneNumber(phone string) (User, error) {
 	var result User
-	collection := client.Database("demo").Collection("users")
+	collection := client.Database(viper.GetString("mongo_db")).Collection("users")
 	err := collection.FindOne(context.Background(), bson.M{"phone": phone}).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -47,7 +51,7 @@ func GetUserByPhoneNumber(phone string) (User, error) {
 
 func GetUserByEmail(email string) (User, error) {
 	var result User
-	collection := client.Database("demo").Collection("users")
+	collection := client.Database(viper.GetString("mongo_db")).Collection("users")
 	err := collection.FindOne(context.Background(), bson.M{"email": email}).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -59,13 +63,12 @@ func GetUserByEmail(email string) (User, error) {
 }
 
 func CreateUserWithUsernameAndPassword(username string, password string) (string, error) {
-
 	collection := client.Database("demo").Collection("users")
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate hash password")
 	}
-	res, err := collection.InsertOne(context.Background(), bson.M{"username": username, "password": hashedPassword})
+	res, err := collection.InsertOne(context.Background(), bson.M{"username": username, "password": string(hashedPassword)})
 	if err != nil {
 		return "", errors.Wrap(err, "failed to insert user")
 	}

@@ -19,7 +19,6 @@ type RegisterWithPasswordRequest struct {
 }
 
 func RegisterWithPassword(w http.ResponseWriter, r *http.Request) {
-
 	var request RegisterWithPasswordRequest
 	decorder := json.NewDecoder(r.Body)
 	err := decorder.Decode(&request)
@@ -28,9 +27,11 @@ func RegisterWithPassword(w http.ResponseWriter, r *http.Request) {
 	password := request.Password
 	_, err = models.GetUserByUsername(username)
 	if err != nil {
-		log.WithError(err)
-		response.Error(w, http.StatusInternalServerError)
-		return
+		if err != models.NoFoundUser {
+			log.WithError(err)
+			response.Error(w, http.StatusInternalServerError)
+			return
+		}
 	}
 	id, err := models.CreateUserWithUsernameAndPassword(username, password)
 	if err != nil {
