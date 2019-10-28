@@ -61,3 +61,25 @@ func ApplyJob(w http.ResponseWriter, r *http.Request) {
 		"id": id,
 	})
 }
+
+func UpdateApplication(w http.ResponseWriter, r *http.Request) {
+	// employer send interview to employee
+	// employee accept interview
+	// employee decline interview
+	// employer cancel interview before interview begin
+	// system expire interview
+	// system start interview
+	// system end interview
+	// employee give feedback after the interview about employer
+	// employer give feedback after the interview about employee
+
+	// employer send offer to employee
+	// employee accept offer
+	// employee decline offer
+	// employer cancel offer before employee accept offer
+	// employer cancel offer after employee accept offer
+	// system expire offer
+
+	// employ
+
+}
