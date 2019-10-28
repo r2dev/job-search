@@ -1,13 +1,10 @@
-package company
+package handler
 
 import (
 	"encoding/json"
+	"hirine/helpers"
 	"hirine/models"
 	"net/http"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
-
-	"github.com/go-chi/jwtauth"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/tj/go/http/response"
@@ -26,22 +23,9 @@ func CreateCompany(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, http.StatusInternalServerError)
 		return
 	}
-	_, claims, _ := jwtauth.FromContext(r.Context())
-	claimsUser, ok := claims["user_id"]
-	if !ok {
-		log.WithError(err).Info("jwt user_id not found")
-		response.Error(w, http.StatusInternalServerError)
-		return
-	}
-	userID, ok := claimsUser.(string)
-	if !ok {
-		log.WithError(err).Info("claims convert failed")
-		response.Error(w, http.StatusInternalServerError)
-		return
-	}
-	userObjectID, err := primitive.ObjectIDFromHex(userID)
+	_, userObjectID, err := helpers.GetUserIDFromJWT(r.Context())
 	if err != nil {
-		log.WithError(err).Info(" convert to objectID failed")
+		log.WithError(err).Info(" get id failed")
 		response.Error(w, http.StatusInternalServerError)
 		return
 	}
@@ -60,4 +44,16 @@ func CreateCompany(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, map[string]string{
 		"id": id,
 	})
+}
+
+func DeleteCompany(w http.ResponseWriter, r *http.Request) {
+	// @todo delete
+}
+
+func GetCompany(w http.ResponseWriter, r *http.Request) {
+	response.OK(w, 1)
+}
+
+func UpdateCompany(w http.ResponseWriter, r *http.Request) {
+
 }

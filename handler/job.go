@@ -1,12 +1,10 @@
-package job
+package handler
 
 import (
-	"encoding/json"
 	"hirine/helpers"
 	"hirine/models"
 	"net/http"
 
-	"github.com/go-chi/jwtauth"
 	log "github.com/sirupsen/logrus"
 	"github.com/tj/go/http/response"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -32,29 +30,15 @@ type CreateJobRequest struct {
 
 func CreateJob(w http.ResponseWriter, r *http.Request) {
 	var request CreateJobRequest
-	decorder := json.NewDecoder(r.Body)
-	err := decorder.Decode(&request)
+	err := helpers.DecodeJSON(r, &request)
 	if err != nil {
 		log.WithError(err).Info("decode failed")
 		response.Error(w, http.StatusInternalServerError)
 		return
 	}
-	_, claims, _ := jwtauth.FromContext(r.Context())
-	claimsUser, ok := claims["user_id"]
-	if !ok {
-		log.WithError(err).Info("jwt user_id not found")
-		response.Error(w, http.StatusInternalServerError)
-		return
-	}
-	userID, ok := claimsUser.(string)
-	if !ok {
-		log.WithError(err).Info("claims convert failed")
-		response.Error(w, http.StatusInternalServerError)
-		return
-	}
-	userObjectID, err := primitive.ObjectIDFromHex(userID)
+	_, userObjectID, err := helpers.GetUserIDFromJWT(r.Context())
 	if err != nil {
-		log.WithError(err).Info("convert to objectID failed")
+		log.WithError(err).Info("get id failed")
 		response.Error(w, http.StatusInternalServerError)
 		return
 	}
@@ -72,10 +56,22 @@ func CreateJob(w http.ResponseWriter, r *http.Request) {
 	description := request.Description
 	reminder := request.Reminder
 	company := request.Company
+
 	companyObjectID, err := primitive.ObjectIDFromHex(company)
 	if err != nil {
 		log.WithError(err).Info("convert to objectID failed")
 		response.Error(w, http.StatusInternalServerError)
+		return
+	}
+	companyValue, err := models.GetCompanyById(companyObjectID)
+	if err != nil {
+		log.WithError(err).Info("get company failed")
+		response.Error(w, http.StatusInternalServerError)
+		return
+	}
+	if companyValue.Admin != userObjectID {
+		log.WithError(err).Info("unauthorized")
+		response.Error(w, http.StatusUnauthorized)
 		return
 	}
 	id, err := models.CreateJob(&models.CreateJobPayload{
@@ -104,4 +100,12 @@ func CreateJob(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, map[string]string{
 		"id": id,
 	})
+}
+
+func DeleteJob(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func UpdateJob(w http.ResponseWriter, r *http.Request) {
+
 }

@@ -1,12 +1,12 @@
 package main
 
 import (
-	"hirine/auth"
-	"hirine/company"
-	"hirine/job"
+	"hirine/handler"
 	"hirine/models"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/go-chi/jwtauth"
@@ -44,50 +44,54 @@ func main() {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-	r.Post("/auth/register", auth.RegisterWithPassword)
-	r.Post("/auth/login-username", auth.LoginWithPassword)
-	// e.POST("/auth/verify-phone", auth.VerifyPhone)
-	// e.POST("/auth/change-password", auth.ChangePassword)
 
-	// r.Post("/auth/register-phone", auth.RegisterWithPhoneNumber)
+	workDir, _ := os.Getwd()
+	filesDir := filepath.Join(workDir, "templates/static")
+	FileServer(r, "/static", http.Dir(filesDir))
+
+	r.Get("/", handler.IndexPage)
+	r.Get("/register", handler.RegisterPage)
+	r.Post("/register", handler.RegisterHandler)
+	r.Get("/login", handler.LoginPage)
+
+	r.Post("/auth/register", handler.RegisterWithPassword)
+	r.Post("/auth/login-username", handler.LoginWithPassword)
 
 	r.Group(func(r chi.Router) {
 		r.Use(jwtauth.Verifier(tokenAuth))
 
 		r.Use(jwtauth.Authenticator)
 
-		r.Get("/company", company.GetCompany)
-		r.Post("/company", company.CreateCompany)
-		r.Put("/company/{id}", company.UpdateCompany)
-		r.Delete("/company/{id}", company.DeleteCompany)
+		r.Get("/company", handler.GetCompany)
+		r.Post("/company", handler.CreateCompany)
+		r.Put("/company/{id}", handler.UpdateCompany)
+		r.Delete("/company/{id}", handler.DeleteCompany)
 
-		r.Post("/job", job.CreateJob)
-		// r.Put("/job/{id}", company.UpdateJob)
-		// r.
-		// r.Post("/company/{id}/staff",)
+		r.Post("/job", handler.CreateJob)
+		r.Put("/job/{id}", handler.UpdateJob)
+		r.Delete("/job/{id}", handler.DeleteJob)
+
+		r.Post("/application/apply", handler.ApplyJob)
 	})
 
-	// Unauthenticated route
-	// r.Get("/", accessible)
-
-	// r := e.Group("/employer")
-	// r.Use(middleware.JWT([]byte("secret")))
-	// r.POST("/company", company.Create)
-	// r.PUT("/company/:id", company.Update)
-	// r.POST("/company/:id/staff", company.AddStaff)
-
-	// r.POST("/job", job.Create)
-	// r.PUT("/job/:id", job.Update)
-	// r.DELETE("/job/:id", job.SoftDelete)
-
-	// r.POST("/job/:id/apply", application.Apply)
-	// r.POST("/application/:id/send-interview", application.SendInterview)
-	// r.POST("/application/:id/decline-interview", application.DeclineInterview)
-	// r.POST("/application/:id/cancel-interview", application.CancelInterview)
-	// r.POST("/application/:id/send-offer", application.SendOffer)
-	// r.POST("/application/:id/cancel-offer", application.CancelOffer)
-
-	// e.Logger.Fatal(e.Start(":1323"))
 	log.Info("starting server on 1323")
 	log.Fatal(http.ListenAndServe(":1323", r))
+}
+
+func FileServer(r chi.Router, path string, root http.FileSystem) {
+	if strings.ContainsAny(path, "{}*") {
+		panic("FileServer does not permit URL parameters.")
+	}
+
+	fs := http.StripPrefix(path, http.FileServer(root))
+
+	if path != "/" && path[len(path)-1] != '/' {
+		r.Get(path, http.RedirectHandler(path+"/", 301).ServeHTTP)
+		path += "/"
+	}
+	path += "*"
+
+	r.Get(path, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fs.ServeHTTP(w, r)
+	}))
 }

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -16,10 +15,12 @@ const (
 )
 
 type Company struct {
-	CompanyName  string             `bson:"companyName"`
-	ProfileImage string             `bson:"profileImage"`
-	Verify       bool               `bson:"verify"`
-	Admin        primitive.ObjectID `bson:"admin"`
+	CompanyID    primitive.ObjectID   `bson:"_id"`
+	CompanyName  string               `bson:"companyName"`
+	ProfileImage string               `bson:"profileImage"`
+	Verify       bool                 `bson:"verify"`
+	Admin        primitive.ObjectID   `bson:"admin"`
+	Manager      []primitive.ObjectID `bson:"Manager"`
 }
 
 type CreateCompanyPayload struct {
@@ -37,7 +38,6 @@ func CreateCompany(company CreateCompanyPayload) (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, "insert company failed")
 	}
-	log.Info(res)
 	id, ok := res.InsertedID.(primitive.ObjectID)
 	if !ok {
 		return "", errors.New("could not convert to string")
@@ -65,4 +65,11 @@ func UpdateCompany(company UpdateCompanyPayload) error {
 		return errors.Wrap(err, "modify count wrong")
 	}
 	return nil
+}
+
+func GetCompanyById(CompanyID primitive.ObjectID) (Company, error) {
+	var result Company
+	collection := client.Database(viper.GetString("mongo_db")).Collection("companys")
+	err := collection.FindOne(context.Background(), bson.M{"_id": CompanyID}).Decode(&result)
+	return result, err
 }
