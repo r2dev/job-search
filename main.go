@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-chi/jwtauth"
+	"github.com/gorilla/csrf"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -38,6 +39,7 @@ func main() {
 	models.InitMongo(viper.GetString("mongo_url"))
 
 	tokenAuth := jwtauth.New("HS256", []byte(viper.GetString("jwt_secret")), nil)
+	csrfMiddleware := csrf.Protect([]byte(viper.GetString("session_secret")))
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
@@ -48,18 +50,19 @@ func main() {
 	workDir, _ := os.Getwd()
 	filesDir := filepath.Join(workDir, "templates/static")
 	FileServer(r, "/static", http.Dir(filesDir))
-
-	r.Get("/", handler.IndexPage)
-	r.Get("/register", handler.RegisterPage)
-	r.Post("/register", handler.RegisterHandler)
-	r.Get("/login", handler.LoginPage)
+	r.Group(func(r chi.Router) {
+		r.Use(csrfMiddleware)
+		r.Get("/", handler.IndexPage)
+		r.Get("/register", handler.RegisterPage)
+		r.Post("/register", handler.RegisterHandler)
+		r.Get("/login", handler.LoginPage)
+	})
 
 	r.Post("/auth/register", handler.RegisterWithPassword)
 	r.Post("/auth/login-username", handler.LoginWithPassword)
 
 	r.Group(func(r chi.Router) {
 		r.Use(jwtauth.Verifier(tokenAuth))
-
 		r.Use(jwtauth.Authenticator)
 
 		r.Get("/company", handler.GetCompany)

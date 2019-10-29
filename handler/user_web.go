@@ -1,38 +1,43 @@
 package handler
 
 import (
+	"hirine/models"
 	"net/http"
-	"text/template"
+	"os"
+
+	"github.com/gorilla/sessions"
+	log "github.com/sirupsen/logrus"
 )
+
+var store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	_, uok := r.Form["username"]
-	_, pok := r.Form["password"]
-	if !uok || !pok {
-		var indexTemp = template.Must(
-			template.ParseFiles("./templates/layout/base.html", "./templates/register.html"))
-		indexTemp.Execute(w, nil)
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+
+	// http.Redirect(w, r, "/register", 302)
+	_, err := models.GetUserByUsername(username)
+	if err != nil && err != models.NoFoundUser {
+		log.WithError(err)
+		http.Redirect(w, r, "/register", 302)
 		return
 	}
-	// username := request.Username
-	// password := request.Password
-	// _, err = models.GetUserByUsername(username)
-	// if err != nil {
-	// 	if err != models.NoFoundUser {
-	// 		log.WithError(err)
-	// 		response.Error(w, http.StatusInternalServerError)
-	// 		return
-	// 	}
-	// }
-	// id, err := models.CreateUserWithUsernameAndPassword(username, password)
-	// if err != nil {
-	// 	log.WithError(err)
-	// 	response.Error(w, http.StatusBadGateway)
-	// 	return
-	// }
+	_, err = models.CreateUserWithUsernameAndPassword(username, password)
+	if err != nil {
+		log.WithError(err)
+		http.Redirect(w, r, "/register", 302)
+		return
+	}
+	// http.Redirect(w, r, "")
 	// response.OK(w, map[string]string{
 	// 	"id": id,
 	// })
+}
+
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	// username := r.FormValue("username")
+	// password := r.FormValue("password")
 
 }
