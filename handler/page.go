@@ -8,15 +8,16 @@ import (
 )
 
 func IndexPage(w http.ResponseWriter, r *http.Request) {
-	var indexTemp = template.Must(
+	indexTemp := template.Must(
 		template.ParseFiles("./templates/layout/base.html", "./templates/index.html"))
 	indexTemp.Execute(w, nil)
 }
 
 func RegisterPage(w http.ResponseWriter, r *http.Request) {
-	var indexTemp = template.Must(
+	t := template.Must(
 		template.ParseFiles("./templates/layout/base.html", "./templates/register.html"))
-	indexTemp.Execute(w, map[string]interface{}{
+
+	t.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 	})
 }
