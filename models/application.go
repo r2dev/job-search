@@ -21,9 +21,9 @@ type GetApplicationPayload struct {
 	Applicant primitive.ObjectID
 }
 
-func GetApplication(application *GetApplicationPayload) (Application, error) {
+func (db *DB) GetApplication(application *GetApplicationPayload) (Application, error) {
 	var result Application
-	collection := client.Database(viper.GetString("mongo_db")).Collection("applications")
+	collection := db.Database(viper.GetString("mongo_db")).Collection("applications")
 	err := collection.FindOne(context.Background(),
 		bson.M{"job": application.Job, "applicant": application.Applicant}).Decode(&result)
 	if err != nil {
@@ -37,10 +37,10 @@ type CreateApplicationPayload struct {
 	Job       primitive.ObjectID
 }
 
-func CreateApplication(application *CreateApplicationPayload) (string, error) {
+func (db *DB) CreateApplication(application *CreateApplicationPayload) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	collection := client.Database(viper.GetString("mongo_db")).Collection("applications")
+	collection := db.Database(viper.GetString("mongo_db")).Collection("applications")
 	res, err := collection.InsertOne(
 		ctx, bson.M{"applicant": application.Applicant, "job": application.Job, "status": "applying"})
 	if err != nil {
@@ -58,10 +58,10 @@ type UpdateApplicationPayload struct {
 	Status        string
 }
 
-func UpdateApplication(application UpdateApplicationPayload) error {
+func (db *DB) UpdateApplication(application UpdateApplicationPayload) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	collection := client.Database(viper.GetString("mongo_db")).Collection("applications")
+	collection := db.Database(viper.GetString("mongo_db")).Collection("applications")
 	res, err := collection.UpdateOne(
 		ctx, bson.M{"_id": application.ApplicationID}, bson.M{"status": application.Status})
 	if err != nil {

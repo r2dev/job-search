@@ -1,4 +1,4 @@
-package handler
+package app
 
 import (
 	"net/http"
@@ -7,13 +7,13 @@ import (
 	"github.com/gorilla/csrf"
 )
 
-func IndexPage(w http.ResponseWriter, r *http.Request) {
+func (app *App) IndexPage(w http.ResponseWriter, r *http.Request) {
 	indexTemp := template.Must(
 		template.ParseFiles("./templates/layout/base.html", "./templates/index.html"))
 	indexTemp.Execute(w, nil)
 }
 
-func RegisterPage(w http.ResponseWriter, r *http.Request) {
+func (app *App) RegisterPage(w http.ResponseWriter, r *http.Request) {
 	t := template.Must(
 		template.ParseFiles("./templates/layout/base.html", "./templates/register.html"))
 
@@ -22,7 +22,7 @@ func RegisterPage(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func LoginPage(w http.ResponseWriter, r *http.Request) {
+func (app *App) LoginPage(w http.ResponseWriter, r *http.Request) {
 	var indexTemp = template.Must(
 		template.ParseFiles("./templates/layout/base.html", "./templates/login.html"))
 	indexTemp.Execute(w, map[string]interface{}{

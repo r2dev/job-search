@@ -23,9 +23,9 @@ type User struct {
 
 var NoFoundUser = errors.New("user no found")
 
-func GetUserByUsername(username string) (User, error) {
+func (db *DB) GetUserByUsername(username string) (User, error) {
 	var result User
-	collection := client.Database(viper.GetString("mongo_db")).Collection("users")
+	collection := db.Database(viper.GetString("mongo_db")).Collection("users")
 	err := collection.FindOne(context.Background(), bson.M{"username": username}).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -36,9 +36,9 @@ func GetUserByUsername(username string) (User, error) {
 	return result, nil
 }
 
-func GetUserByPhoneNumber(phone string) (User, error) {
+func (db *DB) GetUserByPhoneNumber(phone string) (User, error) {
 	var result User
-	collection := client.Database(viper.GetString("mongo_db")).Collection("users")
+	collection := db.Database(viper.GetString("mongo_db")).Collection("users")
 	err := collection.FindOne(context.Background(), bson.M{"phone": phone}).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -49,9 +49,9 @@ func GetUserByPhoneNumber(phone string) (User, error) {
 	return result, nil
 }
 
-func GetUserByEmail(email string) (User, error) {
+func (db *DB) GetUserByEmail(email string) (User, error) {
 	var result User
-	collection := client.Database(viper.GetString("mongo_db")).Collection("users")
+	collection := db.Database(viper.GetString("mongo_db")).Collection("users")
 	err := collection.FindOne(context.Background(), bson.M{"email": email}).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -62,8 +62,8 @@ func GetUserByEmail(email string) (User, error) {
 	return result, nil
 }
 
-func CreateUserWithUsernameAndPassword(username string, password string) (string, error) {
-	collection := client.Database("demo").Collection("users")
+func (db *DB) CreateUserWithUsernameAndPassword(username string, password string) (string, error) {
+	collection := db.Database("demo").Collection("users")
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate hash password")
@@ -79,8 +79,8 @@ func CreateUserWithUsernameAndPassword(username string, password string) (string
 	return id.Hex(), nil
 }
 
-func CreateUserWithPhone(phone string) (string, error) {
-	collection := client.Database("demo").Collection("users")
+func (db *DB) CreateUserWithPhone(phone string) (string, error) {
+	collection := db.Database("demo").Collection("users")
 	res, err := collection.InsertOne(context.Background(), bson.M{"phone": phone, "verified": false})
 	if err != nil {
 		return "", errors.Wrap(err, "failed to insert user")

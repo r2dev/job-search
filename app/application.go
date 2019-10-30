@@ -1,4 +1,4 @@
-package handler
+package app
 
 import (
 	"encoding/json"
@@ -16,7 +16,7 @@ type ApplyJobRequest struct {
 	Job string `json:"job"`
 }
 
-func ApplyJob(w http.ResponseWriter, r *http.Request) {
+func (app *App) ApplyJob(w http.ResponseWriter, r *http.Request) {
 	var request ApplyJobRequest
 	decorder := json.NewDecoder(r.Body)
 	err := decorder.Decode(&request)
@@ -39,7 +39,7 @@ func ApplyJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = models.GetApplication(&models.GetApplicationPayload{
+	_, err = app.DB.GetApplication(&models.GetApplicationPayload{
 		Job:       jobObjectID,
 		Applicant: userObjectID,
 	})
@@ -48,7 +48,7 @@ func ApplyJob(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, http.StatusInternalServerError)
 		return
 	}
-	id, err := models.CreateApplication(&models.CreateApplicationPayload{
+	id, err := app.DB.CreateApplication(&models.CreateApplicationPayload{
 		Applicant: userObjectID,
 		Job:       jobObjectID,
 	})
@@ -62,7 +62,7 @@ func ApplyJob(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func UpdateApplication(w http.ResponseWriter, r *http.Request) {
+func (app *App) UpdateApplication(w http.ResponseWriter, r *http.Request) {
 	// employer send interview to employee
 	// employee accept interview
 	// employee decline interview

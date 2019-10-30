@@ -10,10 +10,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-const (
-	collection = "companys"
-)
-
 type Company struct {
 	CompanyID    primitive.ObjectID   `bson:"_id"`
 	CompanyName  string               `bson:"companyName"`
@@ -29,10 +25,10 @@ type CreateCompanyPayload struct {
 	ProfileImage string
 }
 
-func CreateCompany(company CreateCompanyPayload) (string, error) {
+func (db *DB) CreateCompany(company CreateCompanyPayload) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	collection := client.Database(viper.GetString("mongo_db")).Collection(collection)
+	collection := db.Database(viper.GetString("mongo_db")).Collection("companys")
 	res, err := collection.InsertOne(
 		ctx, bson.M{"companyName": company.CompanyName, "verify": false, "admin": company.Admin})
 	if err != nil {
@@ -51,10 +47,10 @@ type UpdateCompanyPayload struct {
 	ProfileImage string
 }
 
-func UpdateCompany(company UpdateCompanyPayload) error {
+func (db *DB) UpdateCompany(company UpdateCompanyPayload) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	collection := client.Database(viper.GetString("mongo_db")).Collection(collection)
+	collection := db.Database(viper.GetString("mongo_db")).Collection("companys")
 	res, err := collection.UpdateOne(
 		ctx, bson.M{"_id": company.CompanyID}, bson.M{"companyName": company.CompanyName, "verify": false})
 	if err != nil {
@@ -67,9 +63,9 @@ func UpdateCompany(company UpdateCompanyPayload) error {
 	return nil
 }
 
-func GetCompanyById(CompanyID primitive.ObjectID) (Company, error) {
+func (db *DB) GetCompanyById(CompanyID primitive.ObjectID) (Company, error) {
 	var result Company
-	collection := client.Database(viper.GetString("mongo_db")).Collection("companys")
+	collection := db.Database(viper.GetString("mongo_db")).Collection("companys")
 	err := collection.FindOne(context.Background(), bson.M{"_id": CompanyID}).Decode(&result)
 	return result, err
 }

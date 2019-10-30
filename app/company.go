@@ -1,4 +1,4 @@
-package handler
+package app
 
 import (
 	"encoding/json"
@@ -14,7 +14,7 @@ type CreateCompanyRequest struct {
 	CompanyName string `json:"companyName"`
 }
 
-func CreateCompany(w http.ResponseWriter, r *http.Request) {
+func (app *App) CreateCompany(w http.ResponseWriter, r *http.Request) {
 	var request CreateCompanyRequest
 	decorder := json.NewDecoder(r.Body)
 	err := decorder.Decode(&request)
@@ -31,7 +31,7 @@ func CreateCompany(w http.ResponseWriter, r *http.Request) {
 	}
 
 	companyName := request.CompanyName
-	id, err := models.CreateCompany(models.CreateCompanyPayload{
+	id, err := app.DB.CreateCompany(models.CreateCompanyPayload{
 		CompanyName: companyName,
 		Admin:       userObjectID,
 	})
@@ -46,14 +46,14 @@ func CreateCompany(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func DeleteCompany(w http.ResponseWriter, r *http.Request) {
+func (app *App) DeleteCompany(w http.ResponseWriter, r *http.Request) {
 	// @todo delete
 }
 
-func GetCompany(w http.ResponseWriter, r *http.Request) {
+func (app *App) GetCompany(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, 1)
 }
 
-func UpdateCompany(w http.ResponseWriter, r *http.Request) {
+func (app *App) UpdateCompany(w http.ResponseWriter, r *http.Request) {
 
 }

@@ -62,10 +62,10 @@ type CreateJobPayload struct {
 	Creator       primitive.ObjectID
 }
 
-func CreateJob(job *CreateJobPayload) (string, error) {
+func (db *DB) CreateJob(job *CreateJobPayload) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	collection := client.Database(viper.GetString("mongo_db")).Collection("jobs")
+	collection := db.Database(viper.GetString("mongo_db")).Collection("jobs")
 	res, err := collection.InsertOne(ctx,
 		bson.M{"title": job.Title, "type": job.Type, "category": job.Category,
 			"firstSalary": job.FirstSalary, "secondSalary": job.SecondSalary, "currency": job.Currency, "rate": job.Rate, "paymentMethod": job.PaymentMethod,

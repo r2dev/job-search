@@ -4,23 +4,25 @@ import (
 	"context"
 	"time"
 
-	log "github.com/sirupsen/logrus"
-
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-var client *mongo.Client
+type DB struct {
+	*mongo.Client
+}
 
-func InitMongo(mongoUrl string) {
+func InitMongo(mongoUrl string) (*DB, error) {
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	var err error
-	client, err = mongo.Connect(ctx, options.Client().ApplyURI(mongoUrl))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoUrl))
 	if err != nil {
-		log.Panic(err)
+		// log.Panic(err)
+		return nil, err
 	}
 	if err = client.Ping(ctx, readpref.Primary()); err != nil {
-		log.Panic(err)
+		// log.Panic(err)
+		return nil, err
 	}
+	return &DB{client}, nil
 }

@@ -1,11 +1,9 @@
-package handler
+package app
 
 import (
 	"crypto/rand"
 	"encoding/json"
-	"hirine/cache"
 	"hirine/models"
-	"hirine/sms"
 	"io"
 	"net/http"
 
@@ -21,7 +19,7 @@ type LoginWithPasswordRequest struct {
 	Password string `json:"password"`
 }
 
-func LoginWithPassword(w http.ResponseWriter, r *http.Request) {
+func (app *App) LoginWithPassword(w http.ResponseWriter, r *http.Request) {
 	var request LoginWithPasswordRequest
 	decorder := json.NewDecoder(r.Body)
 	err := decorder.Decode(&request)
@@ -32,7 +30,7 @@ func LoginWithPassword(w http.ResponseWriter, r *http.Request) {
 	}
 	username := request.Username
 	password := request.Password
-	user, err := models.GetUserByUsername(username)
+	user, err := app.DB.GetUserByUsername(username)
 	if err != nil {
 		if err == models.NoFoundUser {
 			log.WithError(err).Info("dont get user")
@@ -79,14 +77,14 @@ type RegisterWithPasswordRequest struct {
 	Password string `json:"password"`
 }
 
-func RegisterWithPassword(w http.ResponseWriter, r *http.Request) {
+func (app *App) RegisterWithPassword(w http.ResponseWriter, r *http.Request) {
 	var request RegisterWithPasswordRequest
 	decorder := json.NewDecoder(r.Body)
 	err := decorder.Decode(&request)
 
 	username := request.Username
 	password := request.Password
-	_, err = models.GetUserByUsername(username)
+	_, err = app.DB.GetUserByUsername(username)
 	if err != nil {
 		if err != models.NoFoundUser {
 			log.WithError(err)
@@ -96,7 +94,7 @@ func RegisterWithPassword(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	id, err := models.CreateUserWithUsernameAndPassword(username, password)
+	id, err := app.DB.CreateUserWithUsernameAndPassword(username, password)
 	if err != nil {
 		log.WithError(err)
 		response.Error(w, http.StatusBadGateway)
@@ -114,24 +112,24 @@ type RegisterWithPhoneNumberRequest struct {
 }
 
 func RegisterWithPhoneNumber(w http.ResponseWriter, r *http.Request) {
-	var request RegisterWithPhoneNumberRequest
-	decorder := json.NewDecoder(r.Body)
-	err := decorder.Decode(&request)
+	// var request RegisterWithPhoneNumberRequest
+	// decorder := json.NewDecoder(r.Body)
+	// err := decorder.Decode(&request)
 
-	phone := request.Phone
-	_, err = models.GetUserByPhoneNumber(phone)
-	if err != nil {
-		log.WithError(err)
-		response.Error(w, http.StatusInternalServerError)
-		return
-	}
-	verifyCode := encodeToString(4)
-	go cache.Save(phone, verifyCode)
-	go sms.SendVerifyCode(phone, verifyCode)
-	response.OK(w, map[string]string{
-		"ok": "1",
-	})
-	go models.CreateUserWithPhone(phone)
+	// phone := request.Phone
+	// _, err = models.GetUserByPhoneNumber(phone)
+	// if err != nil {
+	// 	log.WithError(err)
+	// 	response.Error(w, http.StatusInternalServerError)
+	// 	return
+	// }
+	// verifyCode := encodeToString(4)
+	// // go cache.Save(phone, verifyCode)
+	// // go sms.SendVerifyCode(phone, verifyCode)
+	// response.OK(w, map[string]string{
+	// 	"ok": "1",
+	// })
+	// go models.CreateUserWithPhone(phone)
 }
 
 func encodeToString(max int) string {
@@ -154,24 +152,24 @@ type VerifyCodeRequest struct {
 }
 
 func VerifyUserWithPhone(w http.ResponseWriter, r *http.Request) {
-	var request VerifyCodeRequest
-	decorder := json.NewDecoder(r.Body)
-	err := decorder.Decode(&request)
-	if err != nil {
-		response.Error(w, http.StatusInternalServerError)
-		return
-	}
-	savedCode, err := cache.Get(request.Phone)
-	if err != nil {
-		response.Error(w, http.StatusInternalServerError)
-		return
-	}
-	if savedCode != request.Code {
-		response.Error(w, http.StatusBadRequest)
-		return
-	}
-	response.OK(w, map[string]string{
-		"ok": "1",
-	})
+	// var request VerifyCodeRequest
+	// decorder := json.NewDecoder(r.Body)
+	// err := decorder.Decode(&request)
+	// if err != nil {
+	// 	response.Error(w, http.StatusInternalServerError)
+	// 	return
+	// }
+	// savedCode, err := cache.Get(request.Phone)
+	// if err != nil {
+	// 	response.Error(w, http.StatusInternalServerError)
+	// 	return
+	// }
+	// if savedCode != request.Code {
+	// 	response.Error(w, http.StatusBadRequest)
+	// 	return
+	// }
+	// response.OK(w, map[string]string{
+	// 	"ok": "1",
+	// })
 
 }

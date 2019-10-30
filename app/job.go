@@ -1,4 +1,4 @@
-package handler
+package app
 
 import (
 	"hirine/helpers"
@@ -28,7 +28,7 @@ type CreateJobRequest struct {
 	Company         string `json:"company"`
 }
 
-func CreateJob(w http.ResponseWriter, r *http.Request) {
+func (app *App) CreateJob(w http.ResponseWriter, r *http.Request) {
 	var request CreateJobRequest
 	err := helpers.DecodeJSON(r, &request)
 	if err != nil {
@@ -63,7 +63,7 @@ func CreateJob(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, http.StatusInternalServerError)
 		return
 	}
-	companyValue, err := models.GetCompanyById(companyObjectID)
+	companyValue, err := app.DB.GetCompanyById(companyObjectID)
 	if err != nil {
 		log.WithError(err).Info("get company failed")
 		response.Error(w, http.StatusInternalServerError)
@@ -74,7 +74,7 @@ func CreateJob(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, http.StatusUnauthorized)
 		return
 	}
-	id, err := models.CreateJob(&models.CreateJobPayload{
+	id, err := app.DB.CreateJob(&models.CreateJobPayload{
 		Title:         title,
 		Category:      category,
 		FirstSalary:   firstSalary,
@@ -104,10 +104,10 @@ func CreateJob(w http.ResponseWriter, r *http.Request) {
 	// create cache
 }
 
-func DeleteJob(w http.ResponseWriter, r *http.Request) {
+func (app *App) DeleteJob(w http.ResponseWriter, r *http.Request) {
 	// update cache
 }
 
-func UpdateJob(w http.ResponseWriter, r *http.Request) {
+func (app *App) UpdateJob(w http.ResponseWriter, r *http.Request) {
 	// update cache
 }

@@ -1,4 +1,4 @@
-package handler
+package app
 
 import (
 	"hirine/models"
@@ -10,18 +10,18 @@ import (
 
 // var store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
 
-func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+func (app *App) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 
-	_, err := models.GetUserByUsername(username)
+	_, err := app.DB.GetUserByUsername(username)
 	if err != nil && err != models.NoFoundUser {
 		log.WithError(err)
 		http.Redirect(w, r, "/register", http.StatusFound)
 		return
 	}
-	_, err = models.CreateUserWithUsernameAndPassword(username, password)
+	_, err = app.DB.CreateUserWithUsernameAndPassword(username, password)
 	if err != nil {
 		log.WithError(err)
 		http.Redirect(w, r, "/register", http.StatusFound)
@@ -30,12 +30,12 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
-func LoginHandler(w http.ResponseWriter, r *http.Request) {
+func (app *App) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 
-	user, err := models.GetUserByUsername(username)
+	user, err := app.DB.GetUserByUsername(username)
 	if err != nil {
 		if err == models.NoFoundUser {
 			log.WithError(err).Info("dont get user")
