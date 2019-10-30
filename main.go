@@ -39,7 +39,7 @@ func main() {
 	models.InitMongo(viper.GetString("mongo_url"))
 
 	tokenAuth := jwtauth.New("HS256", []byte(viper.GetString("jwt_secret")), nil)
-	csrfMiddleware := csrf.Protect([]byte(viper.GetString("session_secret")))
+	csrfMiddleware := csrf.Protect([]byte(viper.GetString("session_secret")), csrf.Secure(false))
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
