@@ -100,12 +100,14 @@ func CreateJob(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, map[string]string{
 		"id": id,
 	})
+
+	// create cache
 }
 
 func DeleteJob(w http.ResponseWriter, r *http.Request) {
-
+	// update cache
 }
 
 func UpdateJob(w http.ResponseWriter, r *http.Request) {
-
+	// update cache
 }

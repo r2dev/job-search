@@ -80,6 +80,4 @@ func UpdateApplication(w http.ResponseWriter, r *http.Request) {
 	// employer cancel offer after employee accept offer
 	// system expire offer
 
-	// employ
-
 }

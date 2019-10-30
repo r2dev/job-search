@@ -90,7 +90,9 @@ func RegisterWithPassword(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if err != models.NoFoundUser {
 			log.WithError(err)
+
 			response.Error(w, http.StatusInternalServerError)
+
 			return
 		}
 	}

@@ -25,5 +25,7 @@ func RegisterPage(w http.ResponseWriter, r *http.Request) {
 func LoginPage(w http.ResponseWriter, r *http.Request) {
 	var indexTemp = template.Must(
 		template.ParseFiles("./templates/layout/base.html", "./templates/login.html"))
-	indexTemp.Execute(w, nil)
+	indexTemp.Execute(w, map[string]interface{}{
+		csrf.TemplateTag: csrf.TemplateField(r),
+	})
 }

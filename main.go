@@ -56,6 +56,7 @@ func main() {
 		r.Get("/register", handler.RegisterPage)
 		r.Post("/register", handler.RegisterHandler)
 		r.Get("/login", handler.LoginPage)
+		r.Post("/login", handler.LoginHandler)
 	})
 
 	r.Post("/auth/register", handler.RegisterWithPassword)
