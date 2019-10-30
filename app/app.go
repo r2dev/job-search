@@ -69,8 +69,6 @@ func CreateServer() *App {
 		r.Post("/application/apply", app.ApplyJob)
 	})
 
-	// log.Info("starting server on 1323")
-	// log.Fatal(http.ListenAndServe(":1323", r))
 	app.R = r
 	return app
 }

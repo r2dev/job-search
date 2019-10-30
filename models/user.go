@@ -5,12 +5,11 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type User struct {
@@ -64,6 +63,7 @@ func (db *DB) GetUserByEmail(email string) (User, error) {
 
 func (db *DB) CreateUserWithUsernameAndPassword(username string, password string) (string, error) {
 	collection := db.Database("demo").Collection("users")
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to generate hash password")
