@@ -27,6 +27,7 @@ func (app *App) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/register", http.StatusFound)
 		return
 	}
+
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
@@ -56,7 +57,19 @@ func (app *App) LoginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
+	session.Values["n_0"] = user.UserID.Hex()
+	session.Save(r, w)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 	return
+}
 
+func (app *App) LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
+	session.Options.MaxAge = -1
+	err := session.Save(r, w)
+	if err != nil {
+		log.Warning("session delete failed")
+	}
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

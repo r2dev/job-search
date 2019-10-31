@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/jwtauth"
 	"github.com/gorilla/csrf"
+	"github.com/gorilla/sessions"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -18,6 +19,7 @@ import (
 type App struct {
 	DB *models.DB
 	R  *chi.Mux
+	S  *sessions.CookieStore
 }
 
 // CreateServer create a server instance
@@ -30,8 +32,9 @@ func CreateServer() *App {
 	}
 	app.DB = db
 	tokenAuth := jwtauth.New("HS256", []byte(viper.GetString("jwt_secret")), nil)
-	csrfMiddleware := csrf.Protect([]byte(viper.GetString("session_secret")), csrf.Secure(false))
-
+	csrfMiddleware := csrf.Protect([]byte(viper.GetString("csrf_secret")), csrf.Secure(false))
+	store := sessions.NewCookieStore([]byte(viper.GetString("session_secret")))
+	app.S = store
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
@@ -48,6 +51,7 @@ func CreateServer() *App {
 		r.Post("/register", app.RegisterHandler)
 		r.Get("/login", app.LoginPage)
 		r.Post("/login", app.LoginHandler)
+		r.Post("/logout", app.LogoutHandler)
 	})
 
 	r.Post("/auth/register", app.RegisterWithPassword)
