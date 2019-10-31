@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/casbin/casbin"
+
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/jwtauth"
@@ -20,6 +22,7 @@ type App struct {
 	DB *models.DB
 	R  *chi.Mux
 	S  *sessions.CookieStore
+	E  *casbin.Enforcer
 }
 
 // CreateServer create a server instance
@@ -35,6 +38,8 @@ func CreateServer() *App {
 	csrfMiddleware := csrf.Protect([]byte(viper.GetString("csrf_secret")), csrf.Secure(false))
 	store := sessions.NewCookieStore([]byte(viper.GetString("session_secret")))
 	app.S = store
+	e, _ := casbin.NewEnforcer(viper.GetString("casbin_model"), viper.GetString("casbin_policy"))
+	app.E = e
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
@@ -46,7 +51,7 @@ func CreateServer() *App {
 	fileServer(r, "/static", http.Dir(filesDir))
 	r.Group(func(r chi.Router) {
 		r.Use(csrfMiddleware)
-		r.Get("/", app.IndexPage)
+		r.Get("/", app.HandleIndex())
 		r.Get("/register", app.RegisterPage)
 		r.Post("/register", app.RegisterHandler)
 		r.Get("/login", app.LoginPage)

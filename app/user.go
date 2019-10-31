@@ -45,11 +45,10 @@ func (app *App) LoginWithPassword(w http.ResponseWriter, r *http.Request) {
 			log.WithError(err).Info("mismatch hash")
 			response.Error(w, http.StatusBadRequest)
 			return
-		} else {
-			log.WithError(err).Info("compare hash unknwon error")
-			response.Error(w, http.StatusInternalServerError)
-			return
 		}
+		log.WithError(err).Info("compare hash unknwon error")
+		response.Error(w, http.StatusInternalServerError)
+		return
 	}
 
 	// Create token

@@ -1,4 +1,3 @@
-
 {{ define "content" }}
 
 <div class="container">
@@ -19,7 +18,7 @@
           <div class="field">
             <label class="label">Password</label>
             <div class="control has-icons-left ">
-              <input class="input" type="password" name="password"/>
+              <input class="input" type="password" name="password" />
               <span class="icon is-small is-left">
                 <i class="fas fa-key"></i>
               </span>
@@ -36,6 +35,12 @@
           </div>
         </div>
       </form>
+      {{range .messages}}
+      <div class="notification">
+        {{.}}
+      </div>
+      {{end}}
+
     </div>
   </div>
 </div>
