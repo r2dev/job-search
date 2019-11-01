@@ -45,19 +45,29 @@ func CreateServer() *App {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(middleware.RedirectSlashes)
 
 	workDir, _ := os.Getwd()
 	filesDir := filepath.Join(workDir, "templates/static")
 	fileServer(r, "/static", http.Dir(filesDir))
 	r.Group(func(r chi.Router) {
 		r.Use(csrfMiddleware)
-		r.Get("/", app.HandleIndex())
-		r.Get("/register", app.RegisterPage)
-		r.Post("/register", app.RegisterHandler)
-		r.Get("/login", app.LoginPage)
-		r.Post("/login", app.LoginHandler)
-		r.Post("/logout", app.LogoutHandler)
-		r.Get("/company-register", app.RegisterCompanyGet())
+		r.Get("/", app.IndexGet())
+		r.Get("/register", app.RegisterUserGet)
+		r.Post("/register", app.RegisterUserPost)
+		r.Get("/login", app.LoginUserGet)
+		r.Post("/login", app.LoginUserPost)
+		r.Post("/logout", app.LogoutUserPost)
+
+		r.Get("/dashboard", app.DashboardGet())
+		r.Get("/dashboard/company", app.DashboardCompanyGet())
+		r.Get("/dashboard/company/{companyID}/admin", app.CompanyAdminGet())
+		r.Get("/dashboard/company-register", app.RegisterCompanyGet())
+		r.Post("/dashboard/company-register", app.RegisterCompanyPost())
+		// r.Get("/dashboard/company/{companyID}/job", app.CompanyJobGet())
+
+		// r.Post("/company/{companyID}/job", app.CompanyJobPost)
+
 	})
 
 	r.Post("/auth/register", app.RegisterWithPassword)

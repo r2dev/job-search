@@ -8,8 +8,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// RegisterHandler handle post /register
-func (app *App) RegisterHandler(w http.ResponseWriter, r *http.Request) {
+// RegisterUserPost handle post /register
+func (app *App) RegisterUserPost(w http.ResponseWriter, r *http.Request) {
 	session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
 	r.ParseForm()
 	username := r.FormValue("username")
@@ -42,8 +42,8 @@ func (app *App) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
-// LoginHandler handle post /login
-func (app *App) LoginHandler(w http.ResponseWriter, r *http.Request) {
+// LoginUserPost handle post /login
+func (app *App) LoginUserPost(w http.ResponseWriter, r *http.Request) {
 	session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
 	r.ParseForm()
 	username := r.FormValue("username")
@@ -84,8 +84,8 @@ func (app *App) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// LogoutHandler handle post /logout
-func (app *App) LogoutHandler(w http.ResponseWriter, r *http.Request) {
+// LogoutUserPost handle post /logout
+func (app *App) LogoutUserPost(w http.ResponseWriter, r *http.Request) {
 	session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
 	session.Options.MaxAge = -1
 	session.AddFlash("Sign out success")

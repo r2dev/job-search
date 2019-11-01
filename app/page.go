@@ -1,17 +1,19 @@
 package app
 
 import (
-	"fmt"
+	"hirine/models"
 	"net/http"
 	"sync"
 	"text/template"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/tj/go/http/response"
 
 	"github.com/gorilla/csrf"
 )
 
-func (app *App) HandleIndex() http.HandlerFunc {
+func (app *App) IndexGet() http.HandlerFunc {
 	var (
 		init sync.Once
 		tpl  *template.Template
@@ -38,7 +40,7 @@ func (app *App) HandleIndex() http.HandlerFunc {
 
 }
 
-func (app *App) RegisterPage(w http.ResponseWriter, r *http.Request) {
+func (app *App) RegisterUserGet(w http.ResponseWriter, r *http.Request) {
 	session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
 	flash := session.Flashes()
 	session.Save(r, w)
@@ -55,8 +57,6 @@ func (app *App) RegisterPage(w http.ResponseWriter, r *http.Request) {
 			}
 
 		}
-	} else {
-		fmt.Println("no flash message")
 	}
 	t := template.Must(
 		template.ParseFiles("./templates/layout/base.html", "./templates/register.html"))
@@ -67,17 +67,29 @@ func (app *App) RegisterPage(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (app *App) LoginPage(w http.ResponseWriter, r *http.Request) {
+func (app *App) LoginUserGet(w http.ResponseWriter, r *http.Request) {
 	session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
-	_, ok := session.Values["n_0"]
-	if ok {
+	flash := session.Flashes()
+	session.Save(r, w)
+	var messages []string
+	if _, ok := session.Values["n_0"]; ok {
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
+	}
+	if flash != nil {
+		for _, f := range flash {
+			fString, ok := f.(string)
+			if ok {
+				messages = append(messages, fString)
+			}
+
+		}
 	}
 	var indexTemp = template.Must(
 		template.ParseFiles("./templates/layout/base.html", "./templates/login.html"))
 	indexTemp.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
+		"messages":       messages,
 	})
 }
 
@@ -89,20 +101,196 @@ func (app *App) RegisterCompanyGet() http.HandlerFunc {
 	)
 	return func(w http.ResponseWriter, r *http.Request) {
 		init.Do(func() {
-			tpl, err = template.ParseFiles("./templates/layout/base.html", "./templates/company_register.html")
+			tpl, err = template.ParseFiles(
+				"./templates/layout/base.html", "./templates/company-register.html")
 		})
 		if err != nil {
 			response.InternalServerError(w, err.Error())
 		}
 		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
-		_, ok := session.Values["n_0"]
 		login := false
-		if ok {
+		if _, ok := session.Values["n_0"]; ok {
 			login = true
+		}
+		flash := session.Flashes()
+		session.Save(r, w)
+		var messages []string
+		if flash != nil {
+			for _, f := range flash {
+				fString, ok := f.(string)
+				if ok {
+					messages = append(messages, fString)
+				}
+
+			}
 		}
 		tpl.Execute(w, map[string]interface{}{
 			"login":          login,
 			csrf.TemplateTag: csrf.TemplateField(r),
+			"messages":       messages,
+		})
+	}
+}
+
+func (app *App) RegisterCompanyPost() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
+		r.ParseForm()
+		companyName := r.FormValue("name")
+		var userID string
+
+		// @todo
+		userID, ok := session.Values["n_0"].(string)
+		if !ok {
+			session.AddFlash("Please login first")
+			http.Redirect(w, r, "/login", http.StatusFound)
+			session.Save(r, w)
+			return
+		}
+		if len(companyName) == 0 {
+			session.AddFlash("Please enter company name")
+			session.Save(r, w)
+			http.Redirect(w, r, "/company-register", http.StatusFound)
+			return
+		}
+		userObjectID, err := primitive.ObjectIDFromHex(userID)
+		if err != nil {
+			session.AddFlash("Something is wrong")
+			session.Save(r, w)
+			http.Redirect(w, r, "/company-register", http.StatusFound)
+			return
+		}
+		id, err := app.DB.CreateCompany(&models.CreateCompanyPayload{
+			CompanyName:  companyName,
+			ProfileImage: "",
+			Admin:        userObjectID,
+		})
+
+		if err != nil {
+			session.AddFlash("Something is wrong")
+			session.Save(r, w)
+			http.Redirect(w, r, "/company-register", http.StatusFound)
+			return
+		}
+		http.Redirect(w, r, "/dashboard/company/"+id+"/admin", http.StatusSeeOther)
+		return
+	}
+
+}
+
+func (app *App) CompanyAdminGet() http.HandlerFunc {
+	var (
+		init sync.Once
+		tpl  *template.Template
+		err  error
+	)
+	return func(w http.ResponseWriter, r *http.Request) {
+		init.Do(func() {
+			tpl, err = template.ParseFiles(
+				"./templates/layout/base.html", "./templates/company-admin.html")
+		})
+		if err != nil {
+			response.InternalServerError(w, err.Error())
+		}
+		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
+		login := false
+		if _, ok := session.Values["n_0"]; ok {
+			login = true
+		}
+		flash := session.Flashes()
+		session.Save(r, w)
+		var messages []string
+		if flash != nil {
+			for _, f := range flash {
+				fString, ok := f.(string)
+				if ok {
+					messages = append(messages, fString)
+				}
+
+			}
+		}
+		tpl.Execute(w, map[string]interface{}{
+			"login":          login,
+			csrf.TemplateTag: csrf.TemplateField(r),
+			"messages":       messages,
+		})
+	}
+}
+
+func (app *App) DashboardGet() http.HandlerFunc {
+	var (
+		// init sync.Once
+		tpl *template.Template
+		err error
+	)
+	return func(w http.ResponseWriter, r *http.Request) {
+		// init.Do(func() {
+		tpl, err = template.ParseFiles(
+			"./templates/layout/base.html", "./templates/dashboard.html")
+		// })
+		if err != nil {
+			response.InternalServerError(w, err.Error())
+		}
+		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
+		login := false
+		if _, ok := session.Values["n_0"]; ok {
+			login = true
+		}
+		flash := session.Flashes()
+		session.Save(r, w)
+		var messages []string
+		if flash != nil {
+			for _, f := range flash {
+				fString, ok := f.(string)
+				if ok {
+					messages = append(messages, fString)
+				}
+
+			}
+		}
+		tpl.Execute(w, map[string]interface{}{
+			"login":          login,
+			csrf.TemplateTag: csrf.TemplateField(r),
+			"messages":       messages,
+		})
+	}
+}
+
+func (app *App) DashboardCompanyGet() http.HandlerFunc {
+	var (
+		init sync.Once
+		tpl  *template.Template
+		err  error
+	)
+	return func(w http.ResponseWriter, r *http.Request) {
+		init.Do(func() {
+			tpl, err = template.ParseFiles(
+				"./templates/layout/base.html", "./templates/dashboard-company.html")
+		})
+		if err != nil {
+			response.InternalServerError(w, err.Error())
+		}
+		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
+		login := false
+		if _, ok := session.Values["n_0"]; ok {
+			login = true
+		}
+		flash := session.Flashes()
+		session.Save(r, w)
+		var messages []string
+		if flash != nil {
+			for _, f := range flash {
+				fString, ok := f.(string)
+				if ok {
+					messages = append(messages, fString)
+				}
+
+			}
+		}
+		tpl.Execute(w, map[string]interface{}{
+			"login":          login,
+			csrf.TemplateTag: csrf.TemplateField(r),
+			"messages":       messages,
 		})
 	}
 }

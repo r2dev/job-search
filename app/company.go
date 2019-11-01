@@ -31,7 +31,7 @@ func (app *App) CreateCompany(w http.ResponseWriter, r *http.Request) {
 	}
 
 	companyName := request.CompanyName
-	id, err := app.DB.CreateCompany(models.CreateCompanyPayload{
+	id, err := app.DB.CreateCompany(&models.CreateCompanyPayload{
 		CompanyName: companyName,
 		Admin:       userObjectID,
 	})
