@@ -20,7 +20,7 @@ func (app *App) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/register", http.StatusFound)
 		return
 	}
-
+	// if we have unique index, we dont need this
 	_, err := app.DB.GetUserByUsername(username)
 	if err != nil && err != models.NoFoundUser {
 		session.AddFlash("Username has been registered")
@@ -37,7 +37,7 @@ func (app *App) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/register", http.StatusFound)
 		return
 	}
-	session.AddFlash("Something is wrong")
+	session.AddFlash("Account created")
 	session.Save(r, w)
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }

@@ -57,6 +57,7 @@ func CreateServer() *App {
 		r.Get("/login", app.LoginPage)
 		r.Post("/login", app.LoginHandler)
 		r.Post("/logout", app.LogoutHandler)
+		r.Get("/company-register", app.RegisterCompanyGet())
 	})
 
 	r.Post("/auth/register", app.RegisterWithPassword)
@@ -66,16 +67,16 @@ func CreateServer() *App {
 		r.Use(jwtauth.Verifier(tokenAuth))
 		r.Use(jwtauth.Authenticator)
 
-		r.Get("/company", app.GetCompany)
-		r.Post("/company", app.CreateCompany)
-		r.Put("/company/{id}", app.UpdateCompany)
-		r.Delete("/company/{id}", app.DeleteCompany)
+		r.Get("/api/company", app.GetCompany)
+		r.Post("/api/company", app.CreateCompany)
+		r.Put("/api/company/{id}", app.UpdateCompany)
+		r.Delete("/api/company/{id}", app.DeleteCompany)
 
-		r.Post("/job", app.CreateJob)
-		r.Put("/job/{id}", app.UpdateJob)
-		r.Delete("/job/{id}", app.DeleteJob)
+		r.Post("/api/job", app.CreateJob)
+		r.Put("/api/job/{id}", app.UpdateJob)
+		r.Delete("/api/job/{id}", app.DeleteJob)
 
-		r.Post("/application/apply", app.ApplyJob)
+		r.Post("/api/application/apply", app.ApplyJob)
 	})
 
 	app.R = r
