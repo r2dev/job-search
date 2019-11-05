@@ -25,6 +25,7 @@ func (app *App) IndexGet() http.HandlerFunc {
 		})
 		if err != nil {
 			response.InternalServerError(w, err.Error())
+			return
 		}
 		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
 		_, ok := session.Values["n_0"]
@@ -143,8 +144,8 @@ func (app *App) RegisterCompanyPost() http.HandlerFunc {
 		userID, ok := session.Values["n_0"].(string)
 		if !ok {
 			session.AddFlash("Please login first")
-			http.Redirect(w, r, "/login", http.StatusFound)
 			session.Save(r, w)
+			http.Redirect(w, r, "/login", http.StatusFound)
 			return
 		}
 		if len(companyName) == 0 {
@@ -191,6 +192,7 @@ func (app *App) CompanyAdminGet() http.HandlerFunc {
 		})
 		if err != nil {
 			response.InternalServerError(w, err.Error())
+			return
 		}
 		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
 		login := false
@@ -226,10 +228,11 @@ func (app *App) DashboardGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// init.Do(func() {
 		tpl, err = template.ParseFiles(
-			"./templates/layout/base.html", "./templates/dashboard.html")
+			"./templates/layout/base-dashboard.html", "./templates/dashboard.html")
 		// })
 		if err != nil {
 			response.InternalServerError(w, err.Error())
+			return
 		}
 		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
 		login := false
@@ -252,6 +255,7 @@ func (app *App) DashboardGet() http.HandlerFunc {
 			"login":          login,
 			csrf.TemplateTag: csrf.TemplateField(r),
 			"messages":       messages,
+			"IsDashboard":    true,
 		})
 	}
 }
@@ -265,10 +269,11 @@ func (app *App) DashboardCompanyGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		init.Do(func() {
 			tpl, err = template.ParseFiles(
-				"./templates/layout/base.html", "./templates/dashboard-company.html")
+				"./templates/layout/base-dashboard.html", "./templates/dashboard-company.html")
 		})
 		if err != nil {
 			response.InternalServerError(w, err.Error())
+			return
 		}
 		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
 		login := false
@@ -291,6 +296,7 @@ func (app *App) DashboardCompanyGet() http.HandlerFunc {
 			"login":          login,
 			csrf.TemplateTag: csrf.TemplateField(r),
 			"messages":       messages,
+			"IsCompany":      true,
 		})
 	}
 }

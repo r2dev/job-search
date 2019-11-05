@@ -52,7 +52,54 @@
         </div>
       </div>
     </nav>
-    {{ template "content" . }}
+    <div class="container">
+        <div class="columns is-desktop">
+          <div class="column is-one-quarter">
+            <div class="card">
+              <div class="card-content">
+                <aside class="menu">
+                  <p class="menu-label">
+                    General
+                  </p>
+                  <ul class="menu-list">
+                    <li><a href="/dashboard" {{if .IsDashboard}}class="is-active"{{end}}>Dashboard</a></li>
+                    <li><a href="/dashboard/company" {{if .IsCompany}}class="is-active"{{end}}>Companys</a></li>
+                  </ul>
+                  <p class="menu-label">
+                    Administration
+                  </p>
+                  <ul class="menu-list">
+                    <li><a>Team Settings</a></li>
+                    <li>
+                      <a>Manage Your Team</a>
+                      <ul>
+                        <li><a>Members</a></li>
+                        <li><a>Plugins</a></li>
+                        <li><a>Add a member</a></li>
+                      </ul>
+                    </li>
+                    <li><a>Invitations</a></li>
+                    <li><a>Cloud Storage Environment Settings</a></li>
+                    <li><a>Authentication</a></li>
+                  </ul>
+                  <p class="menu-label">
+                    Transactions
+                  </p>
+                  <ul class="menu-list">
+                    <li><a>Payments</a></li>
+                    <li><a>Transfers</a></li>
+                    <li><a>Balance</a></li>
+                  </ul>
+                </aside>
+              </div>
+            </div>
+          </div>
+          <div class="column is-three-quarters">
+            {{ template "content" . }}
+          </div>
+        </div>
+      </div>
+    
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         const $navbarBurgers = Array.prototype.slice.call(
