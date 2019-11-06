@@ -103,7 +103,7 @@ func (app *App) RegisterCompanyGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		init.Do(func() {
 			tpl, err = template.ParseFiles(
-				"./templates/layout/base.html", "./templates/company-register.html")
+				"./templates/layout/base-dashboard.html", "./templates/company-register.html")
 		})
 		if err != nil {
 			response.InternalServerError(w, err.Error())
@@ -188,7 +188,7 @@ func (app *App) CompanyAdminGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		init.Do(func() {
 			tpl, err = template.ParseFiles(
-				"./templates/layout/base.html", "./templates/company-admin.html")
+				"./templates/layout/base-dashboard.html", "./templates/company-admin.html")
 		})
 		if err != nil {
 			response.InternalServerError(w, err.Error())

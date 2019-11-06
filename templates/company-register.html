@@ -3,35 +3,28 @@
 {{ end }}
 
 {{ define "content"}}
-<div class="container">
-    <div class="columns is-mobile">
-        <div class="column is-half is-offset-one-quarter">
-            <form class="card" action="/company-register" method="POST">
-                <div class="card-content">
-                    <div class="field">
-                        <label class="label">Company</label>
-                        <div class="control has-icons-left">
-                            <input class="input" type="text" name="name" />
-                            <span class="icon is-small is-left">
-                                <i class="fas fa-user"></i>
-                            </span>
-                        </div>
-                    </div>
-                    {{ .csrfField }}
-                    <div class="field is-grouped">
-                        <div class="control">
-                            <button class="button is-link">Register</button>
-                        </div>
-                    </div>
-                </div>
-            </form>
-            {{range .messages}}
-            <div class="notification">
-                {{.}}
+<form class="card" action="/dashboard/company-register" method="POST">
+    <div class="card-content">
+        <div class="field">
+            <label class="label">Company</label>
+            <div class="control has-icons-left">
+                <input class="input" type="text" name="name" />
+                <span class="icon is-small is-left">
+                    <i class="fas fa-user"></i>
+                </span>
             </div>
-            {{end}}
-
+        </div>
+        {{ .csrfField }}
+        <div class="field is-grouped">
+            <div class="control">
+                <button class="button is-link">Register</button>
+            </div>
         </div>
     </div>
+</form>
+{{range .messages}}
+<div class="notification">
+    {{.}}
 </div>
+{{end}}
 {{ end }}
