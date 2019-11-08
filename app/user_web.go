@@ -40,6 +40,7 @@ func (app *App) RegisterUserPost(w http.ResponseWriter, r *http.Request) {
 	session.AddFlash("Account created")
 	session.Save(r, w)
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
+	return
 }
 
 // LoginUserPost handle post /login
@@ -95,4 +96,5 @@ func (app *App) LogoutUserPost(w http.ResponseWriter, r *http.Request) {
 		log.Warning("session delete failed")
 	}
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+	return
 }

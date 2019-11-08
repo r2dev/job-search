@@ -1,0 +1,29 @@
+{{ define "title" }}
+Post Job
+{{ end }}
+
+{{ define "content"}}
+<form class="card" action="/dashboard/post-job" method="POST">
+  <div class="card-content">
+    <!-- title -->
+    <div class="field">
+      <label class="label">Title</label>
+      <div class="control">
+        <input class="input" type="text" name="title" />
+      </div>
+    </div>
+    
+    {{ .csrfField }}
+    <div class="field is-grouped">
+      <div class="control">
+        <button class="button is-link">Post</button>
+      </div>
+    </div>
+  </div>
+</form>
+{{ range.messages }}
+<div class="notification">
+  {{.}}
+</div>
+{{ end }}
+{{ end }}

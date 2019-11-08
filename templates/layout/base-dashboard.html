@@ -6,7 +6,12 @@
     <meta name="theme-color" content="#000000" />
     <title>{{ template "title" . }}</title>
     <link rel="stylesheet" type="text/css" href="/static/css/bulma.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" integrity="sha256-+N4/V/SbAFiW1MPBCXnfnP9QSN3+Keu+NlB+0ev/YKQ=" crossorigin="anonymous" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css"
+      integrity="sha256-+N4/V/SbAFiW1MPBCXnfnP9QSN3+Keu+NlB+0ev/YKQ="
+      crossorigin="anonymous"
+    />
   </head>
   <body>
     <nav class="navbar" role="navigation" aria-label="main navigation">
@@ -32,13 +37,13 @@
           <div class="navbar-item">
             <div class="buttons">
               {{ if .login }}
-                <a class="button is-text" href="/dashboard">Dashboard</a>
-                <form action="/logout" method="post">
-                  {{ if .csrfField }}
-                    {{ .csrfField }}
-                  {{ end }}
-                  <button class="button is-light" type="submit">Sign out</button>
-                </form>
+              <a class="button is-text" href="/dashboard">Dashboard</a>
+              <form action="/logout" method="post">
+                {{ if .csrfField }}
+                {{ .csrfField }}
+                {{ end }}
+                <button class="button is-light" type="submit">Sign out</button>
+              </form>
               {{ else }}
               <a class="button is-primary" href="/register">
                 <strong>Sign up</strong>
@@ -53,53 +58,65 @@
       </div>
     </nav>
     <div class="container">
-        <div class="columns is-desktop">
-          <div class="column is-one-quarter">
-            <div class="card">
-              <div class="card-content">
-                <aside class="menu">
-                  <p class="menu-label">
-                    General
-                  </p>
-                  <ul class="menu-list">
-                    <li><a href="/dashboard" {{if .IsDashboard}}class="is-active"{{end}}>Dashboard</a></li>
-                    <li><a href="/dashboard/company" {{if .IsCompany}}class="is-active"{{end}}>Companys</a></li>
-                  </ul>
-                  <p class="menu-label">
-                    Administration
-                  </p>
-                  <ul class="menu-list">
-                    <li><a>Team Settings</a></li>
-                    <li>
-                      <a>Manage Your Team</a>
-                      <ul>
-                        <li><a>Members</a></li>
-                        <li><a>Plugins</a></li>
-                        <li><a>Add a member</a></li>
-                      </ul>
-                    </li>
-                    <li><a>Invitations</a></li>
-                    <li><a>Cloud Storage Environment Settings</a></li>
-                    <li><a>Authentication</a></li>
-                  </ul>
-                  <p class="menu-label">
-                    Transactions
-                  </p>
-                  <ul class="menu-list">
-                    <li><a>Payments</a></li>
-                    <li><a>Transfers</a></li>
-                    <li><a>Balance</a></li>
-                  </ul>
-                </aside>
-              </div>
+      <div class="columns is-desktop">
+        <div class="column is-one-quarter">
+          <div class="card">
+            <div class="card-content">
+              <aside class="menu">
+                <p class="menu-label">
+                  General
+                </p>
+                <ul class="menu-list">
+                  <li>
+                    <a
+                      href="/dashboard"
+                      {{ if .IsDashboard }}
+                      class="is-active"
+                      {{ end }}
+                      >Dashboard</a
+                    >
+                  </li>
+                </ul>
+                <p class="menu-label">
+                  Company
+                </p>
+                <ul class="menu-list">
+                  <li>
+                    <a>Company</a>
+                    <!-- <ul>
+                        <li><a>Jobs</a></li>
+                        <li><a>Staff</a></li>
+                      </ul> -->
+                  </li>
+                  <li>
+                    <a href="/dashboard/company-register">Add a company</a>
+                  </li>
+                </ul>
+                <p class="menu-label">
+                  Jobs
+                </p>
+                <ul class="menu-list">
+                  <li>
+                    <a href="/post-job">Post a job</a>
+                  </li>
+                </ul>
+                <p class="menu-label">
+                  Settings
+                </p>
+                <ul class="menu-list">
+                  <li><a>Account Profile</a></li>
+                  <li><a>Authentication</a></li>
+                </ul>
+              </aside>
             </div>
           </div>
-          <div class="column is-three-quarters">
-            {{ template "content" . }}
-          </div>
+        </div>
+        <div class="column is-three-quarters">
+          {{ template "content" . }}
         </div>
       </div>
-    
+    </div>
+
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         const $navbarBurgers = Array.prototype.slice.call(
