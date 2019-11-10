@@ -1,8 +1,10 @@
 package app
 
 import (
+	"hirine/helpers"
 	"hirine/models"
 	"net/http"
+	"strconv"
 	"sync"
 	"text/template"
 
@@ -338,5 +340,50 @@ func (app *App) DashboardPostJobGet() http.HandlerFunc {
 			csrf.TemplateTag: csrf.TemplateField(r),
 			"messages":       messages,
 		})
+	}
+}
+
+func (app *App) PostJobPost() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
+		title := r.FormValue("title")
+		category := r.FormValue("category")
+		description := r.FormValue("description")
+		firstSalaryString := r.FormValue("firstSalary")
+		firstSalary, err := strconv.ParseFloat(firstSalaryString, 32)
+		secondSalaryString := r.FormValue("secondSalary")
+		paymentMethod := r.FormValue("paymentMethod")
+		currency := r.FormValue("currency")
+		rate := r.FormValue("rate")
+		startDateString := r.FormValue("startDate")
+		startDate := helpers.ParseJavascriptTimeString(startDateString)
+		endDateString := r.FormValue("endDate")
+		endDate := helpers.ParseJavascriptTimeString(endDateString)
+		startTimeString := r.FormValue("startTime")
+		startTime := helpers.ParseJavascriptTimeString(startTimeString)
+		endTimeString := r.FormValue("endTime")
+		endTime := helpers.ParseJavascriptTimeString(endTimeString)
+		reminder := r.FormValue("reminder")
+
+		id, err := app.DB.CreateJob(&models.CreateJobPayload{
+			Title:         title,
+			Category:      category,
+			FirstSalary:   firstSalary,
+			SecondSalary:  secondSalary,
+			PaymentMethod: paymentMethod,
+			Currency:      currency,
+			Rate:          rate,
+			StartDate:     startDate,
+			EndDate:       endDate,
+			StartTime:     startTime,
+			EndTime:       endTime,
+			Description:   description,
+			Reminder:      reminder,
+			Company:       companyObjectID,
+			Creator:       userObjectID,
+		})
+
+		http.Redirect(w, r, "/dashboard/post-job", http.StatusFound)
+
 	}
 }
