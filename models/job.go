@@ -83,15 +83,18 @@ func (db *DB) CreateJob(job *CreateJobPayload) (string, error) {
 	return id.Hex(), nil
 }
 
-func (db *DB) GetJobByID(id string) (*Job, error) {
-	var result *Job
+func (db *DB) GetJobByID(job *Job, id string) error {
+	idForSearch, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
 	collection := db.Database(viper.GetString("mongo_db")).Collection("jobs")
-	err := collection.FindOne(context.Background(), bson.M{"_id": id}).Decode(result)
+	err = collection.FindOne(context.Background(), bson.M{"_id": idForSearch}).Decode(&job)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, nil
+			return nil
 		}
-		return nil, err
+		return err
 	}
-	return result, nil
+	return nil
 }

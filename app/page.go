@@ -323,6 +323,13 @@ func (app *App) DashboardPostJobGet() http.HandlerFunc {
 			login = true
 		}
 		flash := session.Flashes()
+
+		userID, ok := session.Values["n_0"].(string)
+		if !ok {
+			session.AddFlash("Please login first")
+			http.Redirect(w, r, "/login", http.StatusFound)
+			return
+		}
 		session.Save(r, w)
 		var messages []string
 		if flash != nil {
@@ -334,20 +341,50 @@ func (app *App) DashboardPostJobGet() http.HandlerFunc {
 
 			}
 		}
+		var companies []models.Company
+		err := app.DB.GetCompaniesByAdminID(&companies, userID)
+		if err != nil {
+			response.InternalServerError(w, err.Error())
+			return
+		}
 		tpl.Execute(w, map[string]interface{}{
 			"login":          login,
 			csrf.TemplateTag: csrf.TemplateField(r),
 			"messages":       messages,
+			"companies":      companies,
 		})
 	}
 }
 
 func (app *App) PostJobPost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
+		userID, ok := session.Values["n_0"].(string)
+		if !ok {
+			session.AddFlash("Please login first")
+			session.Save(r, w)
+			http.Redirect(w, r, "/login", http.StatusFound)
+			return
+		}
+		userObjectID, err := primitive.ObjectIDFromHex(userID)
+		if err != nil {
+			session.AddFlash("Something is wrong")
+			session.Save(r, w)
+			http.Redirect(w, r, "/dashboard/post-job", http.StatusFound)
+			return
+		}
 		r.ParseForm()
 		title := r.FormValue("title")
-		// category := r.FormValue("category")
+		category := r.FormValue("category")
 		description := r.FormValue("description")
+		companyID := r.FormValue("company")
+		companyObjectID, err := primitive.ObjectIDFromHex(companyID)
+		if err != nil {
+			session.AddFlash("Something is wrong")
+			session.Save(r, w)
+			http.Redirect(w, r, "/dashboard/post-job", http.StatusFound)
+			return
+		}
 		// firstSalaryString := r.FormValue("firstSalary")
 		// firstSalary, err := strconv.ParseFloat(firstSalaryString, 64)
 		// if err != nil {
@@ -368,9 +405,9 @@ func (app *App) PostJobPost() http.HandlerFunc {
 		// endTime := helpers.ParseJavascriptTimeString(endTimeString)
 		// reminder := r.FormValue("reminder")
 
-		jobId, err := app.DB.CreateJob(&models.CreateJobPayload{
-			Title: title,
-			// Category:      category,
+		jobID, err := app.DB.CreateJob(&models.CreateJobPayload{
+			Title:    title,
+			Category: category,
 			// FirstSalary:   firstSalary,
 			// SecondSalary:  secondSalary,
 			// PaymentMethod: paymentMethod,
@@ -382,13 +419,13 @@ func (app *App) PostJobPost() http.HandlerFunc {
 			// EndTime:       endTime,
 			Description: description,
 			// Reminder:      reminder,
-			// Company:       companyObjectID,
-			// Creator:       userObjectID,
+			Company: companyObjectID,
+			Creator: userObjectID,
 		})
 		if err != nil {
 			http.Redirect(w, r, "/dashboard/post-job", http.StatusFound)
 		}
-		http.Redirect(w, r, "/dashboard/job/"+jobId, http.StatusFound)
+		http.Redirect(w, r, "/dashboard/job/"+jobID, http.StatusFound)
 	}
 }
 
@@ -408,7 +445,9 @@ func (app *App) DashboardJobDetailGet() http.HandlerFunc {
 			response.InternalServerError(w, err.Error())
 			return
 		}
-		job, err := app.DB.GetJobByID(jobID)
+		var job models.Job
+		err := app.DB.GetJobByID(&job, jobID)
+
 		if err != nil {
 			response.InternalServerError(w, err.Error())
 			return

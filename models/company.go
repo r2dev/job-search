@@ -63,9 +63,32 @@ func (db *DB) UpdateCompany(company UpdateCompanyPayload) error {
 	return nil
 }
 
-func (db *DB) GetCompanyById(CompanyID primitive.ObjectID) (Company, error) {
-	var result Company
+func (db *DB) GetCompanyById(company *Company, CompanyID primitive.ObjectID) error {
 	collection := db.Database(viper.GetString("mongo_db")).Collection("companys")
-	err := collection.FindOne(context.Background(), bson.M{"_id": CompanyID}).Decode(&result)
-	return result, err
+	err := collection.FindOne(context.Background(), bson.M{"_id": CompanyID}).Decode(company)
+	return err
+}
+
+func (db *DB) GetCompaniesByAdminID(companies *[]Company, adminID string) error {
+	collection := db.Database(viper.GetString("mongo_db")).Collection("companys")
+	adminObjectID, err := primitive.ObjectIDFromHex(adminID)
+	if err != nil {
+		return err
+	}
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	cur, err := collection.Find(ctx, bson.M{"admin": adminObjectID})
+	if err != nil {
+		return err
+	}
+	defer cur.Close(ctx)
+	for cur.Next(ctx) {
+		var temp Company
+		err := cur.Decode(&temp)
+		if err != nil {
+			return err
+		}
+		*companies = append(*companies, temp)
+	}
+
+	return nil
 }

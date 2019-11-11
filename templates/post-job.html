@@ -29,7 +29,16 @@ Post Job
       </div>
     </div>
     <!-- end description -->
-
+    <div class="field">
+      <div class="select">
+        <select>
+          <option selected>Company</option>
+          {{range .companies}}
+          <option value="{{.CompanyID.Hex}}">{{.CompanyName}}</option>
+          {{end}}
+        </select>
+      </div>
+    </div>
     {{ .csrfField }}
     <div class="field is-grouped">
       <div class="control">

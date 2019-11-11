@@ -63,7 +63,8 @@ func (app *App) CreateJob(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, http.StatusInternalServerError)
 		return
 	}
-	companyValue, err := app.DB.GetCompanyById(companyObjectID)
+	var companyValue models.Company
+	err = app.DB.GetCompanyById(&companyValue, companyObjectID)
 	if err != nil {
 		log.WithError(err).Info("get company failed")
 		response.Error(w, http.StatusInternalServerError)
