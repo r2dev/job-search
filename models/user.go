@@ -22,15 +22,15 @@ type User struct {
 
 var NoFoundUser = errors.New("user no found")
 
-func (db *DB) GetUserByUsername(username string) (User, error) {
-	var result User
+func (db *DB) GetUserByUsername(username string) (*User, error) {
+	var result *User
 	collection := db.Database(viper.GetString("mongo_db")).Collection("users")
-	err := collection.FindOne(context.Background(), bson.M{"username": username}).Decode(&result)
+	err := collection.FindOne(context.Background(), bson.M{"username": username}).Decode(result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return User{}, NoFoundUser
+			return nil, NoFoundUser
 		}
-		return User{}, err
+		return nil, err
 	}
 	return result, nil
 }
@@ -48,15 +48,15 @@ func (db *DB) GetUserByPhoneNumber(phone string) (User, error) {
 	return result, nil
 }
 
-func (db *DB) GetUserByEmail(email string) (User, error) {
-	var result User
+func (db *DB) GetUserByEmail(email string) (*User, error) {
+	var result *User
 	collection := db.Database(viper.GetString("mongo_db")).Collection("users")
-	err := collection.FindOne(context.Background(), bson.M{"email": email}).Decode(&result)
+	err := collection.FindOne(context.Background(), bson.M{"email": email}).Decode(result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return User{}, nil
+			return nil, nil
 		}
-		return User{}, err
+		return nil, err
 	}
 	return result, nil
 }

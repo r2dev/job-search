@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type location struct {
@@ -28,8 +29,8 @@ type Job struct {
 	Category      string             `bson:"category"`
 	Type          string             `bson:"type"`
 	Address       address
-	FirstSalary   int64              `bson:"firstSalary"`
-	SecondSalary  int64              `bson:"secondSalary"`
+	FirstSalary   float64            `bson:"firstSalary"`
+	SecondSalary  float64            `bson:"secondSalary"`
 	PaymentMethod string             `bson:"paymentMethod"`
 	Currency      string             `bson:"currency"`
 	Rate          string             `bson:"rate"`
@@ -47,8 +48,8 @@ type CreateJobPayload struct {
 	Title         string
 	Type          string
 	Category      string
-	FirstSalary   int64
-	SecondSalary  int64
+	FirstSalary   float64
+	SecondSalary  float64
 	Currency      string
 	Rate          string
 	PaymentMethod string
@@ -80,4 +81,17 @@ func (db *DB) CreateJob(job *CreateJobPayload) (string, error) {
 		return "", errors.New("could not convert to string")
 	}
 	return id.Hex(), nil
+}
+
+func (db *DB) GetJobByID(id string) (*Job, error) {
+	var result *Job
+	collection := db.Database(viper.GetString("mongo_db")).Collection("jobs")
+	err := collection.FindOne(context.Background(), bson.M{"_id": id}).Decode(result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return result, nil
 }

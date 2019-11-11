@@ -11,21 +11,21 @@ import (
 )
 
 type CreateJobRequest struct {
-	Title           string `json:"title"`
-	Category        string `json:"category"`
-	Type            string `json:"type"`
-	FirstSalary     int64  `json:"firstSalary"`
-	SecondSalary    int64  `json:"secondSalary"`
-	PaymentMethod   string `json:"paymentMethod"`
-	Currency        string `json:"currency"`
-	Rate            string `json:"rate"`
-	StartDateString string `json:"startDate"`
-	EndDateString   string `json:"endDate"`
-	StartTimeString string `json:"startTime"`
-	EndTimeString   string `json:"endTime"`
-	Description     string `json:"description"`
-	Reminder        string `json:"reminder"`
-	Company         string `json:"company"`
+	Title           string  `json:"title"`
+	Category        string  `json:"category"`
+	Type            string  `json:"type"`
+	FirstSalary     float64 `json:"firstSalary"`
+	SecondSalary    float64 `json:"secondSalary"`
+	PaymentMethod   string  `json:"paymentMethod"`
+	Currency        string  `json:"currency"`
+	Rate            string  `json:"rate"`
+	StartDateString string  `json:"startDate"`
+	EndDateString   string  `json:"endDate"`
+	StartTimeString string  `json:"startTime"`
+	EndTimeString   string  `json:"endTime"`
+	Description     string  `json:"description"`
+	Reminder        string  `json:"reminder"`
+	Company         string  `json:"company"`
 }
 
 func (app *App) CreateJob(w http.ResponseWriter, r *http.Request) {

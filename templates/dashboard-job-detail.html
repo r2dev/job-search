@@ -1,0 +1,14 @@
+{{ define "title" }}
+{{.title}}
+{{ end }}
+
+{{ define "content"}}
+<div class="card">
+    {{.title}}
+</div>
+{{ range.messages }}
+<div class="notification">
+  {{.}}
+</div>
+{{ end }}
+{{ end }}
