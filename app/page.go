@@ -429,6 +429,58 @@ func (app *App) PostJobPost() http.HandlerFunc {
 	}
 }
 
+func (app *App) DashboardJobListGet() http.HandlerFunc {
+	var (
+		init sync.Once
+		tpl  *template.Template
+		err  error
+	)
+	return func(w http.ResponseWriter, r *http.Request) {
+		init.Do(func() {
+			tpl, err = template.ParseFiles(
+				"./templates/layout/base-dashboard.html", "./templates/dashboard-job-list.html",
+			)
+		})
+		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
+		userID, ok := session.Values["n_0"].(string)
+		if !ok {
+			session.AddFlash("Please login first")
+			session.Save(r, w)
+			http.Redirect(w, r, "/login", http.StatusFound)
+			return
+		}
+		login := false
+		if _, ok := session.Values["n_0"]; ok {
+			login = true
+		}
+		flash := session.Flashes()
+		session.Save(r, w)
+		var messages []string
+		if flash != nil {
+			for _, f := range flash {
+				fString, ok := f.(string)
+				if ok {
+					messages = append(messages, fString)
+				}
+
+			}
+		}
+
+		var jobs []models.Job
+		err := app.DB.GetJobByCreator(&jobs, userID)
+		if err != nil {
+			response.InternalServerError(w, err.Error())
+			return
+		}
+		tpl.Execute(w, map[string]interface{}{
+			"login":          login,
+			csrf.TemplateTag: csrf.TemplateField(r),
+			"messages":       messages,
+			"jobs":           jobs,
+		})
+	}
+}
+
 func (app *App) DashboardJobDetailGet() http.HandlerFunc {
 	var (
 		init sync.Once

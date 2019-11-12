@@ -89,12 +89,35 @@ func (db *DB) GetJobByID(job *Job, id string) error {
 		return err
 	}
 	collection := db.Database(viper.GetString("mongo_db")).Collection("jobs")
-	err = collection.FindOne(context.Background(), bson.M{"_id": idForSearch}).Decode(&job)
+	err = collection.FindOne(context.Background(), bson.M{"_id": idForSearch}).Decode(job)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil
 		}
 		return err
+	}
+	return nil
+}
+
+func (db *DB) GetJobByCreator(jobs *[]Job, creatorID string) error {
+	creator, err := primitive.ObjectIDFromHex(creatorID)
+	if err != nil {
+		return err
+	}
+	collection := db.Database(viper.GetString("mongo_db")).Collection("jobs")
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	cur, err := collection.Find(ctx, bson.M{"creator": creator})
+	if err != nil {
+		return err
+	}
+	defer cur.Close(ctx)
+	for cur.Next(ctx) {
+		var temp Job
+		err := cur.Decode(&temp)
+		if err != nil {
+			return err
+		}
+		*jobs = append(*jobs, temp)
 	}
 	return nil
 }

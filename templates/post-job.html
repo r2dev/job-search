@@ -31,7 +31,7 @@ Post Job
     <!-- end description -->
     <div class="field">
       <div class="select">
-        <select>
+        <select name="company">
           <option selected>Company</option>
           {{range .companies}}
           <option value="{{.CompanyID.Hex}}">{{.CompanyName}}</option>

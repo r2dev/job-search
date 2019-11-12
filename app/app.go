@@ -67,6 +67,8 @@ func CreateServer() *App {
 		r.Get("/dashboard/post-job", app.DashboardPostJobGet())
 		r.Post("/dashboard/post-job", app.PostJobPost())
 		r.Get("/dashboard/job/{jobID}", app.DashboardJobDetailGet())
+
+		r.Get("/dashboard/job", app.DashboardJobListGet())
 		// r.Get("/dashboard/company/{companyID}/job", app.CompanyJobGet())
 
 		// r.Post("/company/{companyID}/job", app.CompanyJobPost)
