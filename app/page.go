@@ -518,7 +518,6 @@ func (app *App) DashboardJobDetailGet() http.HandlerFunc {
 				if ok {
 					messages = append(messages, fString)
 				}
-
 			}
 		}
 		tpl.Execute(w, map[string]interface{}{
