@@ -467,7 +467,7 @@ func (app *App) DashboardJobListGet() http.HandlerFunc {
 		}
 
 		var jobs []models.Job
-		err := app.DB.GetJobByCreator(&jobs, userID)
+		err := app.DB.GetJobsByCreator(&jobs, userID)
 		if err != nil {
 			response.InternalServerError(w, err.Error())
 			return

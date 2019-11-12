@@ -21,7 +21,8 @@ func (app *App) RegisterUserPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// if we have unique index, we dont need this
-	_, err := app.DB.GetUserByUsername(username)
+	var user models.User
+	err := app.DB.GetUserByUsername(&user, username)
 	if err != nil && err != models.NoFoundUser {
 		session.AddFlash("Username has been registered")
 		session.Save(r, w)
@@ -49,8 +50,8 @@ func (app *App) LoginUserPost(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	username := r.FormValue("username")
 	password := r.FormValue("password")
-
-	user, err := app.DB.GetUserByUsername(username)
+	var user models.User
+	err := app.DB.GetUserByUsername(&user, username)
 	if err != nil {
 		session.AddFlash("username or password is not correct")
 		session.Save(r, w)

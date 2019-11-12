@@ -22,17 +22,16 @@ type User struct {
 
 var NoFoundUser = errors.New("user no found")
 
-func (db *DB) GetUserByUsername(username string) (*User, error) {
-	var result *User
+func (db *DB) GetUserByUsername(user *User, username string) error {
 	collection := db.Database(viper.GetString("mongo_db")).Collection("users")
-	err := collection.FindOne(context.Background(), bson.M{"username": username}).Decode(result)
+	err := collection.FindOne(context.Background(), bson.M{"username": username}).Decode(user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, NoFoundUser
+			return NoFoundUser
 		}
-		return nil, err
+		return err
 	}
-	return result, nil
+	return nil
 }
 
 func (db *DB) GetUserByPhoneNumber(phone string) (User, error) {

@@ -30,7 +30,8 @@ func (app *App) LoginWithPassword(w http.ResponseWriter, r *http.Request) {
 	}
 	username := request.Username
 	password := request.Password
-	user, err := app.DB.GetUserByUsername(username)
+	var user models.User
+	err = app.DB.GetUserByUsername(&user, username)
 	if err != nil {
 		if err == models.NoFoundUser {
 			log.WithError(err).Info("dont get user")
@@ -83,7 +84,8 @@ func (app *App) RegisterWithPassword(w http.ResponseWriter, r *http.Request) {
 
 	username := request.Username
 	password := request.Password
-	_, err = app.DB.GetUserByUsername(username)
+	var user models.User
+	err = app.DB.GetUserByUsername(&user, username)
 	if err != nil {
 		if err != models.NoFoundUser {
 			log.WithError(err)

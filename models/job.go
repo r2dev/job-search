@@ -99,7 +99,7 @@ func (db *DB) GetJobByID(job *Job, id string) error {
 	return nil
 }
 
-func (db *DB) GetJobByCreator(jobs *[]Job, creatorID string) error {
+func (db *DB) GetJobsByCreator(jobs *[]Job, creatorID string) error {
 	creator, err := primitive.ObjectIDFromHex(creatorID)
 	if err != nil {
 		return err
