@@ -1,20 +1,29 @@
 {{ define "title" }}
-    Job list    
+Job list
 {{ end }}
 
 {{ define "content"}}
 <div class="card">
-    <div class="card-content">
-        <ul class="list">
-            {{range .jobs}}
-            <li>{{.Title}}</li>
-            {{end}}
-        </ul>
+  <div class="card-content">
+    <div class="tabs is-boxed">
+      <ul>
+        <li class="is-active"><a>All</a></li>
+        <li><a>Active</a></li>
+        <li><a>Inactive</a></li>
+      </ul>
     </div>
+    <ul class="list">
+      {{range.jobs}}
+      <li class="list-item">
+          <a href="/dashboard/job/{{.JobID.Hex}}">{{.Title}}</a>
+        </li>
+      {{end}}
+    </ul>
+  </div>
 </div>
 {{ range.messages }}
 <div class="notification">
-    {{.}}
+  {{.}}
 </div>
 {{ end }}
 {{ end }}
