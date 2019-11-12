@@ -12,13 +12,21 @@ Job list
         <li><a>Inactive</a></li>
       </ul>
     </div>
-    <ul class="list">
-      {{range.jobs}}
-      <li class="list-item">
-          <a href="/dashboard/job/{{.JobID.Hex}}">{{.Title}}</a>
-        </li>
-      {{end}}
-    </ul>
+    <table class="table is-bordered is-striped">
+      <thead>
+        <th>Pos</th>
+        <th>Title</th>
+      </thead>
+      <tbody>
+          {{range $i, $v :=.jobs}}
+            <tr>
+              <th>{{$i}}</th>
+              <td><a href="/dashboard/job/{{.JobID.Hex}}">{{$v.Title}}</a></td>
+            </tr>
+          {{end}}
+      </tbody>
+    </table>
+   
   </div>
 </div>
 {{ range.messages }}
