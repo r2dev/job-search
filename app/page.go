@@ -34,9 +34,16 @@ func (app *App) IndexGet() http.HandlerFunc {
 		if ok {
 			login = true
 		}
+		var jobs []models.Job
+		err := app.DB.GetJobs(&jobs)
+		if err != nil {
+			response.InternalServerError(w, err.Error())
+			return
+		}
 		tpl.Execute(w, map[string]interface{}{
 			"login":          login,
 			csrf.TemplateTag: csrf.TemplateField(r),
+			"jobs":           jobs,
 		})
 	}
 
@@ -528,3 +535,41 @@ func (app *App) DashboardJobDetailGet() http.HandlerFunc {
 		})
 	}
 }
+
+func (app *App) ApplyJobPost() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// check apply
+		// create application
+
+		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
+		userID, ok := session.Values["n_0"].(string)
+		if !ok {
+			session.AddFlash("Please login first")
+			session.Save(r, w)
+			http.Redirect(w, r, "/login", http.StatusFound)
+			return
+		}
+		userObjectID, err := primitive.ObjectIDFromHex(userID)
+		if err != nil {
+			session.AddFlash("Something is wrong")
+			session.Save(r, w)
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+		r.ParseForm()
+		jobID := r.FormValue("jobID")
+		jobObjectID, err := primitive.ObjectIDFromHex(jobID)
+		if err != nil {
+			session.AddFlash("Something is wrong")
+			session.Save(r, w)
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+
+		var application models.Application
+		err = app.DB.GetApplicationByApplicantAndJob(&application, jobObjectID, userObjectID)
+
+	}
+}
+
+// func (app *App) UpdateApplication

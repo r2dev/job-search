@@ -38,11 +38,8 @@ func (app *App) ApplyJob(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, http.StatusInternalServerError)
 		return
 	}
-
-	_, err = app.DB.GetApplication(&models.GetApplicationPayload{
-		Job:       jobObjectID,
-		Applicant: userObjectID,
-	})
+	var application models.Application
+	err = app.DB.GetApplicationByApplicantAndJob(&application, jobObjectID, userObjectID)
 	if err != nil && err != mongo.ErrNoDocuments {
 		log.WithError(err).Info("")
 		response.Error(w, http.StatusInternalServerError)

@@ -121,3 +121,23 @@ func (db *DB) GetJobsByCreator(jobs *[]Job, creatorID string) error {
 	}
 	return nil
 }
+
+func (db *DB) GetJobs(jobs *[]Job) error {
+
+	collection := db.Database(viper.GetString("mongo_db")).Collection("jobs")
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	cur, err := collection.Find(ctx, bson.M{})
+	if err != nil {
+		return err
+	}
+	defer cur.Close(ctx)
+	for cur.Next(ctx) {
+		var temp Job
+		err := cur.Decode(&temp)
+		if err != nil {
+			return err
+		}
+		*jobs = append(*jobs, temp)
+	}
+	return nil
+}

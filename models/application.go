@@ -16,20 +16,15 @@ type Application struct {
 	Job           primitive.ObjectID `bson:"job"`
 	Applicant     primitive.ObjectID `bson:"applicant"`
 }
-type GetApplicationPayload struct {
-	Job       primitive.ObjectID
-	Applicant primitive.ObjectID
-}
 
-func (db *DB) GetApplication(application *GetApplicationPayload) (Application, error) {
-	var result Application
+func (db *DB) GetApplicationByApplicantAndJob(application *Application, job primitive.ObjectID, applicant primitive.ObjectID) error {
 	collection := db.Database(viper.GetString("mongo_db")).Collection("applications")
 	err := collection.FindOne(context.Background(),
-		bson.M{"job": application.Job, "applicant": application.Applicant}).Decode(&result)
+		bson.M{"job": job, "applicant": applicant}).Decode(application)
 	if err != nil {
-		return Application{}, err
+		return err
 	}
-	return result, nil
+	return nil
 }
 
 type CreateApplicationPayload struct {
