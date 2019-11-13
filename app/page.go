@@ -7,6 +7,7 @@ import (
 	"text/template"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/go-chi/chi"
 	"github.com/tj/go/http/response"
@@ -570,7 +571,18 @@ func (app *App) ApplyJobPost() http.HandlerFunc {
 
 		var application models.Application
 		err = app.DB.GetApplicationByApplicantAndJob(&application, jobObjectID, userObjectID)
-
+		if err != nil && err != mongo.ErrNoDocuments {
+			session.AddFlash("duplicate application")
+			session.Save(r, w)
+			app.L.WithError(err).Info("")
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+		_, err = app.DB.CreateApplication(userObjectID, jobObjectID)
+		session.AddFlash("application create")
+		session.Save(r, w)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
 	}
 }
 

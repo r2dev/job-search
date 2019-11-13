@@ -6,7 +6,6 @@ import (
 	"hirine/models"
 	"net/http"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/tj/go/http/response"
 )
 
@@ -19,13 +18,13 @@ func (app *App) CreateCompany(w http.ResponseWriter, r *http.Request) {
 	decorder := json.NewDecoder(r.Body)
 	err := decorder.Decode(&request)
 	if err != nil {
-		log.WithError(err).Info("decode failed")
+		app.L.WithError(err).Info("decode failed")
 		response.Error(w, http.StatusInternalServerError)
 		return
 	}
 	_, userObjectID, err := helpers.GetUserIDFromJWT(r.Context())
 	if err != nil {
-		log.WithError(err).Info(" get id failed")
+		app.L.WithError(err).Info(" get id failed")
 		response.Error(w, http.StatusInternalServerError)
 		return
 	}
@@ -36,7 +35,7 @@ func (app *App) CreateCompany(w http.ResponseWriter, r *http.Request) {
 		Admin:       userObjectID,
 	})
 	if err != nil {
-		log.WithError(err).Info("create company failed")
+		app.L.WithError(err).Info("create company failed")
 		response.Error(w, http.StatusInternalServerError)
 		return
 	}

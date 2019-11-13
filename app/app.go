@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/casbin/casbin"
 
@@ -14,7 +15,7 @@ import (
 	"github.com/go-chi/jwtauth"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -23,15 +24,27 @@ type App struct {
 	R  *chi.Mux
 	S  *sessions.CookieStore
 	E  *casbin.Enforcer
+	L  *logrus.Logger
 }
 
 // CreateServer create a server instance
 func CreateServer() *App {
 	app := &App{}
+	app.L = logrus.New()
+	app.L.SetFormatter(&logrus.JSONFormatter{
+		FieldMap: logrus.FieldMap{
+			logrus.FieldKeyTime:  "timestamp",
+			logrus.FieldKeyLevel: "severity",
+			logrus.FieldKeyMsg:   "message",
+		},
+		TimestampFormat: time.RFC3339Nano,
+	})
+	app.L.SetOutput(os.Stdout)
+	app.L.SetLevel(logrus.DebugLevel)
 
 	db, err := models.InitMongo(viper.GetString("mongo_url"))
 	if err != nil {
-		log.WithError(err).Fatal("config failed")
+		app.L.WithError(err).Fatal("config failed")
 	}
 	app.DB = db
 	tokenAuth := jwtauth.New("HS256", []byte(viper.GetString("jwt_secret")), nil)
@@ -42,6 +55,7 @@ func CreateServer() *App {
 	app.S = store
 	e, _ := casbin.NewEnforcer(viper.GetString("casbin_model"), viper.GetString("casbin_policy"))
 	app.E = e
+
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
@@ -104,7 +118,7 @@ func CreateServer() *App {
 
 // Start starts application
 func (app *App) Start() {
-	log.Fatal(http.ListenAndServe(":1323", app.R))
+	app.L.Fatal(http.ListenAndServe(":1323", app.R))
 }
 
 func fileServer(r chi.Router, path string, root http.FileSystem) {

@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/dgrijalva/jwt-go"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/tj/go/http/response"
 	"golang.org/x/crypto/bcrypt"
@@ -24,7 +23,7 @@ func (app *App) LoginWithPassword(w http.ResponseWriter, r *http.Request) {
 	decorder := json.NewDecoder(r.Body)
 	err := decorder.Decode(&request)
 	if err != nil {
-		log.WithError(err).Info("decode failed")
+		app.L.WithError(err).Info("decode failed")
 		response.Error(w, http.StatusInternalServerError)
 		return
 	}
@@ -34,7 +33,7 @@ func (app *App) LoginWithPassword(w http.ResponseWriter, r *http.Request) {
 	err = app.DB.GetUserByUsername(&user, username)
 	if err != nil {
 		if err == models.NoFoundUser {
-			log.WithError(err).Info("dont get user")
+			app.L.WithError(err).Info("dont get user")
 		}
 		response.Error(w, http.StatusBadRequest)
 		return
@@ -43,11 +42,11 @@ func (app *App) LoginWithPassword(w http.ResponseWriter, r *http.Request) {
 	err = bcrypt.CompareHashAndPassword([]byte(encryptedPassword), []byte(password))
 	if err != nil {
 		if err == bcrypt.ErrMismatchedHashAndPassword {
-			log.WithError(err).Info("mismatch hash")
+			app.L.WithError(err).Info("mismatch hash")
 			response.Error(w, http.StatusBadRequest)
 			return
 		}
-		log.WithError(err).Info("compare hash unknwon error")
+		app.L.WithError(err).Info("compare hash unknwon error")
 		response.Error(w, http.StatusInternalServerError)
 		return
 	}
@@ -62,7 +61,7 @@ func (app *App) LoginWithPassword(w http.ResponseWriter, r *http.Request) {
 	// Generate encoded token and send it as response.
 	t, err := token.SignedString([]byte(viper.GetString("jwt_secret")))
 	if err != nil {
-		log.WithError(err).Warn("sign error")
+		app.L.WithError(err).Warn("sign error")
 		response.Error(w, http.StatusInternalServerError)
 		return
 	}
@@ -88,16 +87,14 @@ func (app *App) RegisterWithPassword(w http.ResponseWriter, r *http.Request) {
 	err = app.DB.GetUserByUsername(&user, username)
 	if err != nil {
 		if err != models.NoFoundUser {
-			log.WithError(err)
-
+			app.L.WithError(err)
 			response.Error(w, http.StatusInternalServerError)
-
 			return
 		}
 	}
 	id, err := app.DB.CreateUserWithUsernameAndPassword(username, password)
 	if err != nil {
-		log.WithError(err)
+		app.L.WithError(err)
 		response.Error(w, http.StatusBadGateway)
 		return
 	}

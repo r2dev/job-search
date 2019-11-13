@@ -27,17 +27,12 @@ func (db *DB) GetApplicationByApplicantAndJob(application *Application, job prim
 	return nil
 }
 
-type CreateApplicationPayload struct {
-	Applicant primitive.ObjectID
-	Job       primitive.ObjectID
-}
-
-func (db *DB) CreateApplication(application *CreateApplicationPayload) (string, error) {
+func (db *DB) CreateApplication(applicant primitive.ObjectID, job primitive.ObjectID) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	collection := db.Database(viper.GetString("mongo_db")).Collection("applications")
 	res, err := collection.InsertOne(
-		ctx, bson.M{"applicant": application.Applicant, "job": application.Job, "status": "applying"})
+		ctx, bson.M{"applicant": applicant, "job": job, "status": "applying"})
 	if err != nil {
 		return "", errors.Wrap(err, "insert application failed")
 	}

@@ -4,7 +4,6 @@ import (
 	"hirine/models"
 	"net/http"
 
-	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -26,7 +25,7 @@ func (app *App) RegisterUserPost(w http.ResponseWriter, r *http.Request) {
 	if err != nil && err != models.NoFoundUser {
 		session.AddFlash("Username has been registered")
 		session.Save(r, w)
-		log.WithError(err)
+		app.L.WithError(err)
 		http.Redirect(w, r, "/register", http.StatusFound)
 		return
 	}
@@ -34,7 +33,7 @@ func (app *App) RegisterUserPost(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		session.AddFlash("Something is wrong")
 		session.Save(r, w)
-		log.WithError(err)
+		app.L.WithError(err)
 		http.Redirect(w, r, "/register", http.StatusFound)
 		return
 	}
@@ -56,7 +55,7 @@ func (app *App) LoginUserPost(w http.ResponseWriter, r *http.Request) {
 		session.AddFlash("username or password is not correct")
 		session.Save(r, w)
 		if err == models.NoFoundUser {
-			log.WithError(err).Info("dont get user")
+			app.L.WithError(err).Info("dont get user")
 
 		}
 		http.Redirect(w, r, "login", http.StatusFound)
@@ -68,11 +67,11 @@ func (app *App) LoginUserPost(w http.ResponseWriter, r *http.Request) {
 		session.AddFlash("username or password is not correct")
 		session.Save(r, w)
 		if err == bcrypt.ErrMismatchedHashAndPassword {
-			log.WithError(err).Info("mismatch hash")
+			app.L.WithError(err).Info("mismatch hash")
 			http.Redirect(w, r, "login", http.StatusFound)
 			return
 		}
-		log.WithError(err).Info("compare hash unknwon error")
+		app.L.WithError(err).Info("compare hash unknwon error")
 		http.Redirect(w, r, "login", http.StatusFound)
 		return
 
@@ -94,7 +93,7 @@ func (app *App) LogoutUserPost(w http.ResponseWriter, r *http.Request) {
 	session.Save(r, w)
 	err := session.Save(r, w)
 	if err != nil {
-		log.Warning("session delete failed")
+		app.L.Warning("session delete failed")
 	}
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 	return
