@@ -35,7 +35,9 @@ func CreateServer() *App {
 	}
 	app.DB = db
 	tokenAuth := jwtauth.New("HS256", []byte(viper.GetString("jwt_secret")), nil)
-	csrfMiddleware := csrf.Protect([]byte(viper.GetString("csrf_secret")), csrf.Secure(false))
+	csrfMiddleware := csrf.Protect(
+		[]byte(viper.GetString("csrf_secret")),
+		csrf.Secure(false), csrf.Path("/"))
 	store := sessions.NewCookieStore([]byte(viper.GetString("session_secret")))
 	app.S = store
 	e, _ := casbin.NewEnforcer(viper.GetString("casbin_model"), viper.GetString("casbin_policy"))
@@ -53,13 +55,15 @@ func CreateServer() *App {
 	r.Group(func(r chi.Router) {
 		r.Use(csrfMiddleware)
 		r.Get("/", app.IndexGet())
-		r.Get("/register", app.RegisterUserGet)
+		r.Get("/register", app.RegisterUserGet())
 		r.Post("/register", app.RegisterUserPost)
 		r.Get("/login", app.LoginUserGet)
 		r.Post("/login", app.LoginUserPost)
 		r.Post("/logout", app.LogoutUserPost)
+		r.Post("/dashboard/logout", app.LogoutUserPost)
 
 		r.Get("/dashboard", app.DashboardGet())
+
 		r.Get("/dashboard/company", app.DashboardCompanyGet())
 		r.Get("/dashboard/company/{companyID}/admin", app.CompanyAdminGet())
 		r.Get("/dashboard/company-register", app.RegisterCompanyGet())

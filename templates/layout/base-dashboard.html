@@ -40,7 +40,7 @@
               <a class="button is-text" href="/dashboard">Dashboard</a>
               <form action="/logout" method="post">
                 {{ if .csrfField }}
-                {{ .csrfField }}
+                  {{ .csrfField }}
                 {{ end }}
                 <button class="button is-light" type="submit">Sign out</button>
               </form>

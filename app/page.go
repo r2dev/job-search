@@ -49,31 +49,33 @@ func (app *App) IndexGet() http.HandlerFunc {
 
 }
 
-func (app *App) RegisterUserGet(w http.ResponseWriter, r *http.Request) {
-	session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
-	flash := session.Flashes()
-	session.Save(r, w)
-	var messages []string
-	if _, ok := session.Values["n_0"]; ok {
-		http.Redirect(w, r, "/", http.StatusFound)
-		return
-	}
-	if flash != nil {
-		for _, f := range flash {
-			fString, ok := f.(string)
-			if ok {
-				messages = append(messages, fString)
-			}
-
+func (app *App) RegisterUserGet() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
+		flash := session.Flashes()
+		session.Save(r, w)
+		var messages []string
+		if _, ok := session.Values["n_0"]; ok {
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
 		}
-	}
-	t := template.Must(
-		template.ParseFiles("./templates/layout/base.html", "./templates/register.html"))
+		if flash != nil {
+			for _, f := range flash {
+				fString, ok := f.(string)
+				if ok {
+					messages = append(messages, fString)
+				}
 
-	t.Execute(w, map[string]interface{}{
-		csrf.TemplateTag: csrf.TemplateField(r),
-		"messages":       messages,
-	})
+			}
+		}
+		t := template.Must(
+			template.ParseFiles("./templates/layout/base.html", "./templates/register.html"))
+
+		t.Execute(w, map[string]interface{}{
+			csrf.TemplateTag: csrf.TemplateField(r),
+			"messages":       messages,
+		})
+	}
 }
 
 func (app *App) LoginUserGet(w http.ResponseWriter, r *http.Request) {
@@ -196,7 +198,7 @@ func (app *App) CompanyAdminGet() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		init.Do(func() {
 			tpl, err = template.ParseFiles(
-				"./templates/layout/base-dashboard.html", "./templates/company-admin.html")
+				"./templates/layout/base.html", "./templates/company-admin.html")
 		})
 		if err != nil {
 			response.InternalServerError(w, err.Error())
@@ -229,15 +231,15 @@ func (app *App) CompanyAdminGet() http.HandlerFunc {
 
 func (app *App) DashboardGet() http.HandlerFunc {
 	var (
-		// init sync.Once
-		tpl *template.Template
-		err error
+		init sync.Once
+		tpl  *template.Template
+		err  error
 	)
 	return func(w http.ResponseWriter, r *http.Request) {
-		// init.Do(func() {
-		tpl, err = template.ParseFiles(
-			"./templates/layout/base-dashboard.html", "./templates/dashboard.html")
-		// })
+		init.Do(func() {
+			tpl, err = template.ParseFiles(
+				"./templates/layout/base-dashboard.html", "./templates/dashboard.html")
+		})
 		if err != nil {
 			response.InternalServerError(w, err.Error())
 			return
