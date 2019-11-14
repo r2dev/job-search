@@ -368,16 +368,13 @@ func (app *App) DashboardPostJobGet() http.HandlerFunc {
 
 func (app *App) PostJobPost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
-		userID, ok := session.Values["n_0"].(string)
+		userID, ok := r.Context().Value(ctxKeyUserID{}).(string)
 		if !ok {
-			session.AddFlash("Please login first")
-			session.Save(r, w)
-			http.Redirect(w, r, "/login", http.StatusFound)
-			return
+			response.InternalServerError(w)
 		}
 		userObjectID, err := primitive.ObjectIDFromHex(userID)
 		if err != nil {
+			session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
 			session.AddFlash("Something is wrong")
 			session.Save(r, w)
 			http.Redirect(w, r, "/dashboard/post-job", http.StatusFound)
@@ -390,6 +387,7 @@ func (app *App) PostJobPost() http.HandlerFunc {
 		companyID := r.FormValue("company")
 		companyObjectID, err := primitive.ObjectIDFromHex(companyID)
 		if err != nil {
+			session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
 			session.AddFlash("Something is wrong")
 			session.Save(r, w)
 			http.Redirect(w, r, "/dashboard/post-job", http.StatusFound)
