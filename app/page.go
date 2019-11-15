@@ -30,10 +30,22 @@ func (app *App) IndexGet() http.HandlerFunc {
 			return
 		}
 		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
+		flash := session.Flashes()
+		session.Save(r, w)
+		var messages []string
 		_, ok := session.Values["n_0"]
 		login := false
 		if ok {
 			login = true
+		}
+		if flash != nil {
+			for _, f := range flash {
+				fString, ok := f.(string)
+				if ok {
+					messages = append(messages, fString)
+				}
+
+			}
 		}
 		var jobs []models.Job
 		err := app.DB.GetJobs(&jobs)
@@ -45,6 +57,7 @@ func (app *App) IndexGet() http.HandlerFunc {
 			"login":          login,
 			csrf.TemplateTag: csrf.TemplateField(r),
 			"jobs":           jobs,
+			"messages":       messages,
 		})
 	}
 
@@ -539,14 +552,12 @@ func (app *App) DashboardJobDetailGet() http.HandlerFunc {
 
 func (app *App) ApplyJobPost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// check apply
-		// create application
-
 		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
 		userID, ok := session.Values["n_0"].(string)
 		if !ok {
 			session.AddFlash("Please login first")
 			session.Save(r, w)
+			app.L.WithField("user", userID)
 			http.Redirect(w, r, "/login", http.StatusFound)
 			return
 		}
@@ -554,6 +565,7 @@ func (app *App) ApplyJobPost() http.HandlerFunc {
 		if err != nil {
 			session.AddFlash("Something is wrong")
 			session.Save(r, w)
+			app.L.Debugln("cant convert user object id")
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}
@@ -563,22 +575,37 @@ func (app *App) ApplyJobPost() http.HandlerFunc {
 		if err != nil {
 			session.AddFlash("Something is wrong")
 			session.Save(r, w)
+			app.L.Debugln("cant convert job object id")
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}
 
 		var application models.Application
 		err = app.DB.GetApplicationByApplicantAndJob(&application, jobObjectID, userObjectID)
+		if (models.Application{}) != application {
+			session.AddFlash("existed application")
+			session.Save(r, w)
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
 		if err != nil && err != mongo.ErrNoDocuments {
-			session.AddFlash("duplicate application")
+			session.AddFlash("something is wrong")
 			session.Save(r, w)
 			app.L.WithError(err).Info("")
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}
 		_, err = app.DB.CreateApplication(userObjectID, jobObjectID)
+		if err != nil {
+			session.AddFlash("something is wrong")
+			session.Save(r, w)
+			app.L.WithError(err).Info("")
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
 		session.AddFlash("application create")
 		session.Save(r, w)
+		app.L.Debugln("created")
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}

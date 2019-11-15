@@ -3,6 +3,7 @@ index
 {{ end }}
 
 {{ define "content"}}
+<div class="container">
 {{$csrf := .csrfField}}
 {{range .jobs}}
 <div class="card">
@@ -16,4 +17,10 @@ index
     </div>
 </div>
 {{end}}
+{{range .messages}}
+<div class="notification">
+  {{.}}
+</div>
+{{end}}
+</div>
 {{ end }}
