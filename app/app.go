@@ -85,8 +85,10 @@ func CreateServer() *App {
 		r.Get("/dashboard/post-job", app.DashboardPostJobGet())
 		r.Post("/dashboard/post-job", app.PostJobPost())
 		r.Get("/dashboard/job/{jobID}", app.DashboardJobDetailGet())
-
+		r.Get("/dashboard/job/{jobID}/application", app.DashboardApplicationListGet())
 		r.Get("/dashboard/job", app.DashboardJobListGet())
+		r.Post("/job/apply", app.ApplyJobPost())
+
 		// r.Get("/dashboard/company/{companyID}/job", app.CompanyJobGet())
 
 		// r.Post("/company/{companyID}/job", app.CompanyJobPost)
@@ -137,4 +139,8 @@ func fileServer(r chi.Router, path string, root http.FileSystem) {
 	r.Get(path, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fs.ServeHTTP(w, r)
 	}))
+}
+
+func Hello() error {
+	return nil
 }

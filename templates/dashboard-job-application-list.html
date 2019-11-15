@@ -1,0 +1,23 @@
+{{ define "title" }}
+applications
+{{ end }}
+
+{{ define "content"}}
+<table class="table is-bordered is-striped">
+        <thead>
+          <th>ID</th>
+        </thead>
+        <tbody>
+            {{range $i, $v :=.applications}}
+              <tr>
+                <th>{{$v.ApplicationID.Hex}}</th>
+              </tr>
+            {{end}}
+        </tbody>
+      </table>
+{{ range.messages }}
+<div class="notification">
+  {{.}}
+</div>
+{{ end }}
+{{ end }}
