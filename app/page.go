@@ -368,13 +368,16 @@ func (app *App) DashboardPostJobGet() http.HandlerFunc {
 
 func (app *App) PostJobPost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userID, ok := r.Context().Value(ctxKeyUserID{}).(string)
+		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
+		userID, ok := session.Values["n_0"].(string)
 		if !ok {
-			response.InternalServerError(w)
+			session.AddFlash("Please login first")
+			session.Save(r, w)
+			http.Redirect(w, r, "/login", http.StatusFound)
+			return
 		}
 		userObjectID, err := primitive.ObjectIDFromHex(userID)
 		if err != nil {
-			session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
 			session.AddFlash("Something is wrong")
 			session.Save(r, w)
 			http.Redirect(w, r, "/dashboard/post-job", http.StatusFound)
@@ -387,7 +390,6 @@ func (app *App) PostJobPost() http.HandlerFunc {
 		companyID := r.FormValue("company")
 		companyObjectID, err := primitive.ObjectIDFromHex(companyID)
 		if err != nil {
-			session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
 			session.AddFlash("Something is wrong")
 			session.Save(r, w)
 			http.Redirect(w, r, "/dashboard/post-job", http.StatusFound)
@@ -449,6 +451,10 @@ func (app *App) DashboardJobListGet() http.HandlerFunc {
 				"./templates/layout/base-dashboard.html", "./templates/dashboard-job-list.html",
 			)
 		})
+		if err != nil {
+			response.InternalServerError(w, err.Error())
+			return
+		}
 		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
 		userID, ok := session.Values["n_0"].(string)
 		if !ok {
@@ -475,7 +481,7 @@ func (app *App) DashboardJobListGet() http.HandlerFunc {
 		}
 
 		var jobs []models.Job
-		err := app.DB.GetJobsByCreator(&jobs, userID)
+		err = app.DB.GetJobsByCreator(&jobs, userID)
 		if err != nil {
 			response.InternalServerError(w, err.Error())
 			return
@@ -539,9 +545,6 @@ func (app *App) DashboardJobDetailGet() http.HandlerFunc {
 
 func (app *App) ApplyJobPost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// check apply
-		// create application
-
 		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
 		userID, ok := session.Values["n_0"].(string)
 		if !ok {
@@ -584,4 +587,40 @@ func (app *App) ApplyJobPost() http.HandlerFunc {
 	}
 }
 
-// func (app *App) UpdateApplication
+const (
+	ActionDeclineApplication = iota + 1
+	ActionSendInterview
+	ActionAcceptInterview
+	ActionDeclineInterview
+	ActionCancelInterview
+
+	ActionSendOffer
+	ActionAcceptOffer
+	ActionDeclineOffer
+)
+
+const (
+	StatusApplying = iota + 1
+	StatusApplyingDecline
+	Status
+)
+
+func (app *App) UpdateApplicationWithAction() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
+		userID, ok := session.Values["n_0"].(string)
+		if !ok {
+			session.AddFlash("Please login first")
+			session.Save(r, w)
+			http.Redirect(w, r, "/login", http.StatusFound)
+			return
+		}
+		userObjectID, err := primitive.ObjectIDFromHex(userID)
+		if err != nil {
+			session.AddFlash("Something is wrong")
+			session.Save(r, w)
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+	}
+}
