@@ -27,6 +27,29 @@ func (db *DB) GetApplicationByApplicantAndJob(application *Application, job prim
 	return nil
 }
 
+func (db *DB) GetApplicationsByJob(applications *[]Application, jobID string) error {
+	job, err := primitive.ObjectIDFromHex(jobID)
+	if err != nil {
+		return err
+	}
+	collection := db.Database(viper.GetString("mongo_db")).Collection("applications")
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	cur, err := collection.Find(ctx, bson.M{"job": job})
+	if err != nil {
+		return err
+	}
+	defer cur.Close(ctx)
+	for cur.Next(ctx) {
+		var temp Application
+		err := cur.Decode(&temp)
+		if err != nil {
+			return err
+		}
+		*applications = append(*applications, temp)
+	}
+	return nil
+}
+
 func (db *DB) CreateApplication(applicant primitive.ObjectID, job primitive.ObjectID) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
