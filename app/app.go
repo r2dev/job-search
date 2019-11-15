@@ -140,3 +140,7 @@ func fileServer(r chi.Router, path string, root http.FileSystem) {
 		fs.ServeHTTP(w, r)
 	}))
 }
+
+func Hello() error {
+	return nil
+}

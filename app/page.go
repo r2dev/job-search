@@ -462,6 +462,10 @@ func (app *App) DashboardJobListGet() http.HandlerFunc {
 				"./templates/layout/base-dashboard.html", "./templates/dashboard-job-list.html",
 			)
 		})
+		if err != nil {
+			response.InternalServerError(w, err.Error())
+			return
+		}
 		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
 		userID, ok := session.Values["n_0"].(string)
 		if !ok {
