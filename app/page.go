@@ -3,6 +3,7 @@ package app
 import (
 	"hirine/models"
 	"net/http"
+	"strconv"
 	"sync"
 	"text/template"
 
@@ -605,7 +606,7 @@ func (app *App) ApplyJobPost() http.HandlerFunc {
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}
-		_, err = app.DB.CreateApplication(userObjectID, jobObjectID)
+		_, err = app.DB.CreateApplication(userObjectID, jobObjectID, StatusApplying)
 		if err != nil {
 			session.AddFlash("something is wrong")
 			session.Save(r, w)
@@ -655,6 +656,23 @@ func (app *App) UpdateApplicationWithAction() http.HandlerFunc {
 			session.Save(r, w)
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
+		}
+		r.ParseForm()
+		action := r.FormValue("action")
+		actionInt, err := strconv.Atoi(action)
+		if err != nil {
+			session.AddFlash("Something is wrong")
+			session.Save(r, w)
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+		switch actionInt {
+		case ActionDeclineApplication:
+			// check is employer
+			// check if status is applying
+		case ActionSendInterview:
+		case ActionCancelInterview:
+		case ActionSendOffer:
 		}
 	}
 }
