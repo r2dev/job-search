@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"sync"
 	"text/template"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -642,6 +643,62 @@ const (
 	StatusOfferAccepted
 )
 
+func (app *App) ScheduleInterview() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		referer := r.Referer()
+		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
+		userID, ok := session.Values["n_0"].(string)
+		if !ok {
+			session.AddFlash("Please login first")
+			session.Save(r, w)
+			http.Redirect(w, r, "/login", http.StatusFound)
+			return
+		}
+		userObjectID, err := primitive.ObjectIDFromHex(userID)
+		if err != nil {
+			session.AddFlash("Something is wrong")
+			session.Save(r, w)
+			http.Redirect(w, r, referer, http.StatusFound)
+			return
+		}
+		r.ParseForm()
+		applicationString := r.FormValue("application")
+		var application models.Application
+		err = app.DB.GetApplicationByApplicationID(&application, applicationString)
+		if err != nil {
+			app.L.WithError(err).Debugln("GetApplicationByApplicationID")
+			session.AddFlash("Something is wrong")
+			session.Save(r, w)
+			http.Redirect(w, r, referer, http.StatusFound)
+			return
+		}
+		if application.Status != StatusApplying {
+			session.AddFlash("You are not allowed to create interview event at this moment")
+			session.Save(r, w)
+			http.Redirect(w, r, referer, http.StatusFound)
+			return
+		}
+		err = app.DB.CreateInterviewEvent(application.ApplicationID, userObjectID, time.Now(), time.Now())
+		if err != nil {
+			app.L.WithError(err).Debugln("CreateInterviewEvent")
+			session.AddFlash("Something is wrong")
+			session.Save(r, w)
+			http.Redirect(w, r, referer, http.StatusFound)
+			return
+		}
+		session.AddFlash("interview update")
+		session.Save(r, w)
+		http.Redirect(w, r, referer, http.StatusSeeOther)
+		return
+
+	}
+}
+
+func (app *App) ConfirmInterview() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+	}
+}
+
 func (app *App) UpdateApplicationWithAction() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		referer := r.Referer()
@@ -675,6 +732,7 @@ func (app *App) UpdateApplicationWithAction() http.HandlerFunc {
 		}
 		updateSuccess := false
 		// move to application
+		// handle side effect? create event(interview event, work event, payout event), create employment
 		switch actionInt {
 		case ActionDeclineApplication:
 			if application.Status == StatusApplying {
@@ -781,6 +839,7 @@ func (app *App) DashboardApplicationListGet() http.HandlerFunc {
 		var applications []models.Application
 		err := app.DB.GetApplicationsByJob(&applications, jobID)
 		if err != nil {
+			app.L.Errorln(err)
 			response.InternalServerError(w, err.Error())
 			return
 		}
