@@ -44,7 +44,7 @@ func (app *App) ApplyJob(w http.ResponseWriter, r *http.Request) {
 		response.Error(w, http.StatusInternalServerError)
 		return
 	}
-	id, err := app.DB.CreateApplication(userObjectID, jobObjectID)
+	id, err := app.DB.CreateApplication(userObjectID, jobObjectID, StatusApplying)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError)
 		return
