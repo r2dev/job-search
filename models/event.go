@@ -18,11 +18,24 @@ const (
 )
 
 type Event struct {
+	EventID     primitive.ObjectID
 	EventType   int
+	EventTime   time.Time
 	Application primitive.ObjectID
 	HireManager primitive.ObjectID
 	TimeOptions []time.Time
+	Confirmed   bool
 }
+
+type StatusInterview int
+
+const (
+	StatusInterviewCreated StatusInterview = iota + 1
+	StatusInterviewUpdated
+	StatusInterviewConfirmed
+	StatusInterviewDeclined
+	StatusInterviewCancel
+)
 
 func (db *DB) CreateInterviewEvent(
 	application primitive.ObjectID,
@@ -37,13 +50,82 @@ func (db *DB) CreateInterviewEvent(
 		timeOptionsBson = append(timeOptionsBson, primitive.NewDateTimeFromTime(timeOption))
 	}
 	res, err := collection.InsertOne(ctx,
-		bson.M{"application": application, "hireManager": hireManager, "timeOptions": timeOptionsBson})
+		bson.M{"application": application, "hireManager": hireManager, "timeOptions": timeOptionsBson, "status": StatusInterviewCreated})
 	if err != nil {
 		return errors.Wrap(err, "insert event failed")
 	}
 	_, ok := res.InsertedID.(primitive.ObjectID)
 	if !ok {
 		return errors.New("could not convert to string")
+	}
+	return nil
+}
+
+func (db *DB) ConfirmInterviewEvent(eventID primitive.ObjectID, timeOption time.Time) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	collection := db.Database(viper.GetString("mongo_db")).Collection("events")
+	res, err := collection.UpdateOne(ctx, bson.M{"_id": eventID},
+		bson.M{"status": StatusInterviewConfirmed, "eventTime": primitive.NewDateTimeFromTime(timeOption)})
+	if err != nil {
+		return errors.Wrap(err, "confirm interview event failed")
+	}
+	count := res.ModifiedCount
+	if count != 1 {
+		return errors.Wrap(err, "modify count wrong")
+	}
+	return nil
+}
+
+func (db *DB) DeclineInterviewEvent(eventID primitive.ObjectID, reason string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	collection := db.Database(viper.GetString("mongo_db")).Collection("events")
+	res, err := collection.UpdateOne(ctx, bson.M{"_id": eventID},
+		bson.M{"reason": reason, "status": StatusInterviewDeclined})
+	if err != nil {
+		return errors.Wrap(err, "decline interview event failed")
+	}
+	count := res.ModifiedCount
+	if count != 1 {
+		return errors.Wrap(err, "modify count wrong")
+	}
+	return nil
+}
+
+func (db *DB) UpdateInterviewEvent(eventID primitive.ObjectID, hireManager primitive.ObjectID, timeOptions ...time.Time) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	collection := db.Database(viper.GetString("mongo_db")).Collection("events")
+	var timeOptionsBson bson.A
+	for _, timeOption := range timeOptions {
+		timeOptionsBson = append(timeOptionsBson, primitive.NewDateTimeFromTime(timeOption))
+	}
+	res, err := collection.UpdateOne(ctx, bson.M{"_id": eventID},
+		bson.M{"hireManger": hireManager, "timeOptions": timeOptions, "status": StatusInterviewUpdated})
+	if err != nil {
+		return errors.Wrap(err, "decline interview event failed")
+	}
+	count := res.ModifiedCount
+	if count != 1 {
+		return errors.Wrap(err, "modify count wrong")
+	}
+	return nil
+}
+
+func (db *DB) CancelInterviewEvent(eventID primitive.ObjectID) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	collection := db.Database(viper.GetString("mongo_db")).Collection("events")
+
+	res, err := collection.UpdateOne(ctx, bson.M{"_id": eventID},
+		bson.M{"status": StatusInterviewCancel})
+	if err != nil {
+		return errors.Wrap(err, "decline interview event failed")
+	}
+	count := res.ModifiedCount
+	if count != 1 {
+		return errors.Wrap(err, "modify count wrong")
 	}
 	return nil
 }
