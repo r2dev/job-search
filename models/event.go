@@ -23,8 +23,10 @@ type Event struct {
 	EventTime   time.Time
 	Application primitive.ObjectID
 	HireManager primitive.ObjectID
+	Applicant   primitive.ObjectID
 	TimeOptions []time.Time
 	Confirmed   bool
+	Status      int
 }
 
 type StatusInterview int
@@ -39,6 +41,7 @@ const (
 
 func (db *DB) CreateInterviewEvent(
 	application primitive.ObjectID,
+	candidate primitive.ObjectID,
 	hireManager primitive.ObjectID,
 	timeOptions ...time.Time,
 ) error {
@@ -50,7 +53,8 @@ func (db *DB) CreateInterviewEvent(
 		timeOptionsBson = append(timeOptionsBson, primitive.NewDateTimeFromTime(timeOption))
 	}
 	res, err := collection.InsertOne(ctx,
-		bson.M{"application": application, "hireManager": hireManager, "timeOptions": timeOptionsBson, "status": StatusInterviewCreated})
+		bson.M{"application": application, "hireManager": hireManager,
+			"timeOptions": timeOptionsBson, "status": StatusInterviewCreated, "candidate": candidate})
 	if err != nil {
 		return errors.Wrap(err, "insert event failed")
 	}
@@ -126,6 +130,21 @@ func (db *DB) CancelInterviewEvent(eventID primitive.ObjectID) error {
 	count := res.ModifiedCount
 	if count != 1 {
 		return errors.Wrap(err, "modify count wrong")
+	}
+	return nil
+}
+
+func (db *DB) GetEventByEventID(event *Event, eventIDString string) error {
+	eventID, err := primitive.ObjectIDFromHex(eventIDString)
+	if err != nil {
+		return err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	collection := db.Database(viper.GetString("mongo_db")).Collection("events")
+	err = collection.FindOne(ctx, bson.M{"_id": eventID}).Decode(event)
+	if err != nil {
+		return err
 	}
 	return nil
 }
