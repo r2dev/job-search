@@ -18,15 +18,17 @@ const (
 )
 
 type Event struct {
-	EventID     primitive.ObjectID
-	EventType   int
-	EventTime   time.Time
+	EventID        primitive.ObjectID
+	EventType      int
+	EventTime      time.Time
+	ActionRequired bool
+	Status         int
+
+	// interview event specific field
 	Application primitive.ObjectID
 	HireManager primitive.ObjectID
 	Applicant   primitive.ObjectID
 	TimeOptions []time.Time
-	Confirmed   bool
-	Status      int
 }
 
 type StatusInterview int

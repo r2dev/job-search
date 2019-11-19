@@ -672,7 +672,7 @@ func (app *App) ScheduleInterviewPost() http.HandlerFunc {
 			http.Redirect(w, r, referer, http.StatusFound)
 			return
 		}
-		err = app.DB.UpdateApplicationStatus(&application, StatusInterviewing)
+		err = app.DB.UpdateApplicationStatus(application.ApplicationID, StatusInterviewing)
 		if err != nil {
 			app.L.WithError(err).Debugln("UpdateApplicationStatus")
 			session.AddFlash("Something is wrong")
@@ -698,7 +698,7 @@ func (app *App) ConfirmInterviewPost() http.HandlerFunc {
 			http.Redirect(w, r, "/login", http.StatusFound)
 			return
 		}
-		userObjectID, err := primitive.ObjectIDFromHex(userID)
+		_, err := primitive.ObjectIDFromHex(userID)
 		if err != nil {
 			session.AddFlash("Something is wrong")
 			session.Save(r, w)
@@ -716,21 +716,16 @@ func (app *App) ConfirmInterviewPost() http.HandlerFunc {
 			http.Redirect(w, r, referer, http.StatusFound)
 			return
 		}
-		if event.Status !=  {
-			session.AddFlash("You are not allowed to confirm interview event at this moment")
-			session.Save(r, w)
-			http.Redirect(w, r, referer, http.StatusFound)
-			return
-		}
-		err = app.DB.ConfirmInterviewEvent(application.ApplicationID, userObjectID, time.Now(), time.Now())
+		err = app.DB.ConfirmInterviewEvent(event.EventID, time.Now())
 		if err != nil {
-			app.L.WithError(err).Debugln("CreateInterviewEvent")
+			app.L.WithError(err).Debugln("ConfirmInterviewEvent")
 			session.AddFlash("Something is wrong")
 			session.Save(r, w)
 			http.Redirect(w, r, referer, http.StatusFound)
 			return
 		}
-		err = app.DB.UpdateApplicationStatus(&application, StatusInterviewing)
+
+		err = app.DB.UpdateApplicationStatus(event.Applicant, StatusInterviewing)
 		if err != nil {
 			app.L.WithError(err).Debugln("UpdateApplicationStatus")
 			session.AddFlash("Something is wrong")
@@ -744,105 +739,6 @@ func (app *App) ConfirmInterviewPost() http.HandlerFunc {
 		return
 	}
 }
-
-// func (app *App) UpdateApplicationWithAction() http.HandlerFunc {
-// 	return func(w http.ResponseWriter, r *http.Request) {
-// 		referer := r.Referer()
-// 		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
-// 		userID, ok := session.Values["n_0"].(string)
-// 		if !ok {
-// 			session.AddFlash("Please login first")
-// 			session.Save(r, w)
-// 			http.Redirect(w, r, "/login", http.StatusFound)
-// 			return
-// 		}
-// 		_, err := primitive.ObjectIDFromHex(userID)
-// 		if err != nil {
-// 			session.AddFlash("Something is wrong")
-// 			session.Save(r, w)
-// 			http.Redirect(w, r, referer, http.StatusFound)
-// 			return
-// 		}
-// 		r.ParseForm()
-// 		action := r.FormValue("action")
-// 		applicationString := r.FormValue("application")
-// 		var application models.Application
-// 		err = app.DB.GetApplicationByApplicationID(&application, applicationString)
-
-// 		actionInt, err := strconv.Atoi(action)
-// 		if err != nil {
-// 			session.AddFlash("Something is wrong")
-// 			session.Save(r, w)
-// 			http.Redirect(w, r, referer, http.StatusFound)
-// 			return
-// 		}
-// 		updateSuccess := false
-// 		// move to application
-// 		// handle side effect? create event(interview event, work event, payout event), create employment
-// 		switch actionInt {
-// 		case ActionDeclineApplication:
-// 			if application.Status == StatusApplying {
-// 				err = app.DB.UpdateApplicationStatus(&application, StatusApplyingDeclined)
-// 				if err == nil {
-// 					updateSuccess = true
-// 				}
-// 			}
-// 		case ActionSendInterview:
-// 			if application.Status == StatusIdle {
-// 				err = app.DB.UpdateApplicationStatus(&application, StatusInterviewInviteSent)
-// 				if err == nil {
-// 					updateSuccess = true
-// 				}
-// 			}
-// 		case ActionCancelInterview:
-// 			if application.Status == StatusInterviewInviteSent {
-// 				err = app.DB.UpdateApplicationStatus(&application, StatusIdle)
-// 				if err == nil {
-// 					updateSuccess = true
-// 				}
-// 			}
-// 		case ActionAcceptInterview:
-// 			if application.Status == StatusInterviewInviteSent {
-// 				err = app.DB.UpdateApplicationStatus(&application, StatusIdle)
-// 				if err == nil {
-// 					updateSuccess = true
-// 				}
-// 			}
-// 		case ActionSendOffer:
-// 			if application.Status == StatusIdle {
-// 				err = app.DB.UpdateApplicationStatus(&application, StatusOfferSent)
-// 				if err == nil {
-// 					updateSuccess = true
-// 				}
-// 			}
-// 		case ActionAcceptOffer:
-// 			if application.Status == StatusOfferSent {
-// 				err = app.DB.UpdateApplicationStatus(&application, StatusOfferAccepted)
-// 				if err == nil {
-// 					updateSuccess = true
-// 				}
-// 			}
-// 		case ActionDeclineOffer:
-// 			if application.Status == StatusOfferSent {
-// 				err = app.DB.UpdateApplicationStatus(&application, StatusIdle)
-// 				if err == nil {
-// 					updateSuccess = true
-// 				}
-// 			}
-// 		}
-// 		if !updateSuccess {
-// 			app.L.WithField("action", actionInt)
-// 			session.AddFlash("update failed")
-// 			session.Save(r, w)
-// 			http.Redirect(w, r, referer, http.StatusFound)
-// 			return
-// 		}
-// 		session.AddFlash("application update")
-// 		session.Save(r, w)
-// 		http.Redirect(w, r, referer, http.StatusSeeOther)
-// 		return
-// 	}
-// }
 
 func (app *App) DashboardApplicationListGet() http.HandlerFunc {
 	var (

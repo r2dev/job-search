@@ -66,12 +66,12 @@ func (db *DB) CreateApplication(applicant primitive.ObjectID, job primitive.Obje
 	return id.Hex(), nil
 }
 
-func (db *DB) UpdateApplicationStatus(application *Application, status int) error {
+func (db *DB) UpdateApplicationStatus(applicationID primitive.ObjectID, status int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	collection := db.Database(viper.GetString("mongo_db")).Collection("applications")
 	res, err := collection.UpdateOne(
-		ctx, bson.M{"_id": application.ApplicationID}, bson.M{"status": status})
+		ctx, bson.M{"_id": applicationID}, bson.M{"status": status})
 	if err != nil {
 		return errors.Wrap(err, "update application failed")
 	}
@@ -79,7 +79,6 @@ func (db *DB) UpdateApplicationStatus(application *Application, status int) erro
 	if count != 1 {
 		return errors.Wrap(err, "modify count wrong")
 	}
-	application.Status = status
 	return nil
 }
 
