@@ -1,0 +1,11 @@
+{{ define "title" }}
+Application detail
+{{ end }}
+
+{{ define "content"}}
+{{ range.messages }}
+<div class="notification">
+  {{.}}
+</div>
+{{ end }}
+{{ end }}

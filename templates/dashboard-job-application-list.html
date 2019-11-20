@@ -3,9 +3,9 @@ applications
 {{ end }}
 
 {{ define "content"}}
-<table class="table is-bordered is-striped">
+      <table class="table is-bordered is-striped">
         <thead>
-          <th>ID</th>
+          <th>#</th>
           <th>Status</th>
           <th>Detail</th>
         </thead>
@@ -13,7 +13,7 @@ applications
             {{$csrfField := .csrfField}}
             {{range $i, $v :=.applications}}
               <tr>
-                <th>{{$v.ApplicationID.Hex}}</th>
+                <td><a href="/dashboard/application/{{$v.ApplicationID.Hex}}">{{ $i }}</a></td>
                 <td>
                   {{$v.Status}}
                 </td>
