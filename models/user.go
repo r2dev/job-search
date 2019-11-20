@@ -61,7 +61,7 @@ func (db *DB) GetUserByEmail(email string) (*User, error) {
 }
 
 func (db *DB) CreateUserWithUsernameAndPassword(username string, password string) (string, error) {
-	collection := db.Database("demo").Collection("users")
+	collection := db.Database(viper.GetString("mongo_db")).Collection("users")
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	if err != nil {

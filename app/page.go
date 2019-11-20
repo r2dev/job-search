@@ -725,7 +725,7 @@ func (app *App) ConfirmInterviewPost() http.HandlerFunc {
 			return
 		}
 
-		err = app.DB.UpdateApplicationStatus(event.Applicant, StatusInterviewing)
+		err = app.DB.UpdateApplicationStatus(event.Attendee, StatusInterviewing)
 		if err != nil {
 			app.L.WithError(err).Debugln("UpdateApplicationStatus")
 			session.AddFlash("Something is wrong")

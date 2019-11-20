@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"go.mongodb.org/mongo-driver/mongo/options"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/bson"
@@ -22,12 +24,12 @@ type Event struct {
 	EventTime      time.Time          `bson:"eventTime"`
 	ActionRequired bool               `bson:"actionRequired"`
 	Status         int                `bson:"status"`
+	Attendee       primitive.ObjectID `bson:"Attendee"`
 
 	// interview event specific field
 	Application primitive.ObjectID `bson:"application"`
 	HireManager primitive.ObjectID `bson:"hireManager"`
 	TimeOptions []time.Time        `bson:"timeOptions"`
-	Attendee    primitive.ObjectID `bson:"Attendee"`
 }
 
 type StatusInterview int
@@ -59,8 +61,7 @@ func (db *DB) CreateInterviewEvent(
 		timeOptionsBson = append(timeOptionsBson, primitive.NewDateTimeFromTime(timeOption))
 	}
 	res, err := collection.InsertOne(ctx,
-		bson.M{"application": application, "hireManager": hireManager,
-			"timeOptions": timeOptionsBson, "status": StatusInterviewCreated, "attendee": attendee, "eventType": EventInterview})
+		bson.M{"application": application, "hireManager": hireManager, "timeOptions": timeOptionsBson, "status": StatusInterviewCreated, "attendee": attendee, "eventType": EventInterview})
 	if err != nil {
 		return errors.Wrap(err, "insert event failed")
 	}
@@ -103,7 +104,7 @@ func (db *DB) DeclineInterviewEvent(eventID primitive.ObjectID, reason string) e
 	return nil
 }
 
-func (db *DB) UpdateInterviewEvent(eventID primitive.ObjectID, hireManager primitive.ObjectID, timeOptions ...time.Time) error {
+func (db *DB) UpdateInterviewEvent(eventID primitive.ObjectID, hireManager primitive.ObjectID, timeOptions []time.Time) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	collection := db.Database(viper.GetString("mongo_db")).Collection("events")
@@ -128,8 +129,7 @@ func (db *DB) CancelInterviewEvent(eventID primitive.ObjectID) error {
 	defer cancel()
 	collection := db.Database(viper.GetString("mongo_db")).Collection("events")
 
-	res, err := collection.UpdateOne(ctx, bson.M{"_id": eventID},
-		bson.M{"status": StatusInterviewCancel})
+	res, err := collection.UpdateOne(ctx, bson.M{"_id": eventID}, bson.M{"status": StatusInterviewCancel})
 	if err != nil {
 		return errors.Wrap(err, "decline interview event failed")
 	}
@@ -145,8 +145,7 @@ func (db *DB) CreateWorkEvent(attendee primitive.ObjectID, eventTime time.Time) 
 	defer cancel()
 	collection := db.Database(viper.GetString("mongo_db")).Collection("events")
 	res, err := collection.InsertOne(ctx,
-		bson.M{"eventTime": eventTime, "status": StatusWorkCreated,
-			"attendee": attendee, "eventType": EventWork})
+		bson.M{"eventTime": eventTime, "status": StatusWorkCreated, "attendee": attendee, "eventType": EventWork})
 	if err != nil {
 		return errors.Wrap(err, "insert event failed")
 	}
@@ -177,8 +176,7 @@ func (db *DB) DeclineWorkEvent(eventID primitive.ObjectID, reason string) error 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	collection := db.Database(viper.GetString("mongo_db")).Collection("events")
-	res, err := collection.UpdateOne(ctx, bson.M{"_id": eventID},
-		bson.M{"reason": reason, "status": StatusWorkDeclined})
+	res, err := collection.UpdateOne(ctx, bson.M{"_id": eventID}, bson.M{"reason": reason, "status": StatusWorkDeclined})
 	if err != nil {
 		return errors.Wrap(err, "decline interview event failed")
 	}
@@ -204,10 +202,10 @@ func (db *DB) GetEventByEventID(event *Event, eventIDString string) error {
 	return nil
 }
 
-func (db *DB) GetEventByAttendee(events *[]Event, attendee primitive.ObjectID) error {
+func (db *DB) GetEventsByAttendee(events *[]Event, attendee primitive.ObjectID, limit int64, skip int64) error {
 	collection := db.Database(viper.GetString("mongo_db")).Collection("events")
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
-	cur, err := collection.Find(ctx, bson.M{"attendee": attendee})
+	cur, err := collection.Find(ctx, bson.M{"attendee": attendee}, options.Find().SetLimit(limit).SetSkip(skip))
 	if err != nil {
 		return err
 	}

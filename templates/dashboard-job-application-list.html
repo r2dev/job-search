@@ -6,7 +6,8 @@ applications
 <table class="table is-bordered is-striped">
         <thead>
           <th>ID</th>
-          <th>Interview</th>
+          <th>Status</th>
+          <th>Detail</th>
         </thead>
         <tbody>
             {{$csrfField := .csrfField}}
@@ -14,7 +15,10 @@ applications
               <tr>
                 <th>{{$v.ApplicationID.Hex}}</th>
                 <td>
-                  <form action="/interview/create" method="post">
+                  {{$v.Status}}
+                </td>
+                <td>
+                    <form action="/interview/create" method="post">
                       {{ $csrfField }}
                       <input type="hidden" value="{{$v.ApplicationID.Hex}}" name="application">
                       <input type="submit" value="create" class="button is-light">
