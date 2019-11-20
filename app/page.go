@@ -774,7 +774,6 @@ func (app *App) DashboardApplicationListGet() http.HandlerFunc {
 				if ok {
 					messages = append(messages, fString)
 				}
-
 			}
 		}
 		jobID := chi.URLParam(r, "jobID")

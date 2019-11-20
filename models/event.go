@@ -13,22 +13,21 @@ import (
 
 const (
 	EventInterview = iota + 1
-	EventOffer
 	EventWork
 )
 
 type Event struct {
-	EventID        primitive.ObjectID
-	EventType      int
-	EventTime      time.Time
-	ActionRequired bool
-	Status         int
+	EventID        primitive.ObjectID `bson:"_id"`
+	EventType      int                `bson:"eventType"`
+	EventTime      time.Time          `bson:"eventTime"`
+	ActionRequired bool               `bson:"actionRequired"`
+	Status         int                `bson:"status"`
 
 	// interview event specific field
-	Application primitive.ObjectID
-	HireManager primitive.ObjectID
-	Applicant   primitive.ObjectID
-	TimeOptions []time.Time
+	Application primitive.ObjectID `bson:"application"`
+	HireManager primitive.ObjectID `bson:"hireManager"`
+	TimeOptions []time.Time        `bson:"timeOptions"`
+	Attendee    primitive.ObjectID `bson:"Attendee"`
 }
 
 type StatusInterview int
@@ -39,11 +38,16 @@ const (
 	StatusInterviewConfirmed
 	StatusInterviewDeclined
 	StatusInterviewCancel
+
+	StatusWorkCreated
+	StatusWorkConfirmed
+	StatusWorkDeclined
+	StatusWorkCancel
 )
 
 func (db *DB) CreateInterviewEvent(
 	application primitive.ObjectID,
-	candidate primitive.ObjectID,
+	attendee primitive.ObjectID,
 	hireManager primitive.ObjectID,
 	timeOptions ...time.Time,
 ) error {
@@ -56,7 +60,7 @@ func (db *DB) CreateInterviewEvent(
 	}
 	res, err := collection.InsertOne(ctx,
 		bson.M{"application": application, "hireManager": hireManager,
-			"timeOptions": timeOptionsBson, "status": StatusInterviewCreated, "candidate": candidate})
+			"timeOptions": timeOptionsBson, "status": StatusInterviewCreated, "attendee": attendee, "eventType": EventInterview})
 	if err != nil {
 		return errors.Wrap(err, "insert event failed")
 	}
@@ -136,6 +140,55 @@ func (db *DB) CancelInterviewEvent(eventID primitive.ObjectID) error {
 	return nil
 }
 
+func (db *DB) CreateWorkEvent(attendee primitive.ObjectID, eventTime time.Time) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	collection := db.Database(viper.GetString("mongo_db")).Collection("events")
+	res, err := collection.InsertOne(ctx,
+		bson.M{"eventTime": eventTime, "status": StatusWorkCreated,
+			"attendee": attendee, "eventType": EventWork})
+	if err != nil {
+		return errors.Wrap(err, "insert event failed")
+	}
+	_, ok := res.InsertedID.(primitive.ObjectID)
+	if !ok {
+		return errors.New("could not convert to string")
+	}
+	return nil
+}
+
+func (db *DB) ConfirmWorkEvent(eventID primitive.ObjectID) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	collection := db.Database(viper.GetString("mongo_db")).Collection("events")
+	res, err := collection.UpdateOne(ctx, bson.M{"_id": eventID},
+		bson.M{"status": StatusWorkConfirmed})
+	if err != nil {
+		return errors.Wrap(err, "confirm work event failed")
+	}
+	count := res.ModifiedCount
+	if count != 1 {
+		return errors.Wrap(err, "modify count wrong")
+	}
+	return nil
+}
+
+func (db *DB) DeclineWorkEvent(eventID primitive.ObjectID, reason string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	collection := db.Database(viper.GetString("mongo_db")).Collection("events")
+	res, err := collection.UpdateOne(ctx, bson.M{"_id": eventID},
+		bson.M{"reason": reason, "status": StatusWorkDeclined})
+	if err != nil {
+		return errors.Wrap(err, "decline interview event failed")
+	}
+	count := res.ModifiedCount
+	if count != 1 {
+		return errors.Wrap(err, "modify count wrong")
+	}
+	return nil
+}
+
 func (db *DB) GetEventByEventID(event *Event, eventIDString string) error {
 	eventID, err := primitive.ObjectIDFromHex(eventIDString)
 	if err != nil {
@@ -147,6 +200,25 @@ func (db *DB) GetEventByEventID(event *Event, eventIDString string) error {
 	err = collection.FindOne(ctx, bson.M{"_id": eventID}).Decode(event)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func (db *DB) GetEventByAttendee(events *[]Event, attendee primitive.ObjectID) error {
+	collection := db.Database(viper.GetString("mongo_db")).Collection("events")
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	cur, err := collection.Find(ctx, bson.M{"attendee": attendee})
+	if err != nil {
+		return err
+	}
+	defer cur.Close(ctx)
+	for cur.Next(ctx) {
+		var temp Event
+		err := cur.Decode(&temp)
+		if err != nil {
+			return err
+		}
+		*events = append(*events, temp)
 	}
 	return nil
 }
