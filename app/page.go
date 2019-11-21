@@ -1,6 +1,7 @@
 package app
 
 import (
+	"hirine/helpers"
 	"hirine/models"
 	"net/http"
 	"sync"
@@ -308,6 +309,25 @@ func (app *App) ScheduleInterviewPost() http.HandlerFunc {
 		}
 		r.ParseForm()
 		applicationString := r.FormValue("application")
+		var timeOptions []time.Time
+		time1String := r.FormValue("time1")
+		if time1, err := helpers.ParseDateTimeLocalString(time1String); err == nil {
+			timeOptions = append(timeOptions, time1)
+		}
+		time2String := r.FormValue("time2")
+		if time2, err := helpers.ParseDateTimeLocalString(time2String); err == nil {
+			timeOptions = append(timeOptions, time2)
+		}
+		time3String := r.FormValue("time3")
+		if time3, err := helpers.ParseDateTimeLocalString(time3String); err == nil {
+			timeOptions = append(timeOptions, time3)
+		}
+		if len(timeOptions) == 0 {
+			session.AddFlash("no time provide")
+			session.Save(r, w)
+			http.Redirect(w, r, referer, http.StatusFound)
+			return
+		}
 
 		var application models.Application
 		err = app.DB.GetApplicationByApplicationID(&application, applicationString)
@@ -324,7 +344,7 @@ func (app *App) ScheduleInterviewPost() http.HandlerFunc {
 			http.Redirect(w, r, referer, http.StatusFound)
 			return
 		}
-		err = app.DB.CreateInterviewEvent(application.ApplicationID, application.Applicant, userObjectID, time.Now(), time.Now())
+		err = app.DB.CreateInterviewEvent(application.ApplicationID, application.Applicant, userObjectID, time.Now())
 		if err != nil {
 			app.L.WithError(err).Debugln("CreateInterviewEvent")
 			session.AddFlash("Something is wrong")
@@ -367,6 +387,14 @@ func (app *App) ConfirmInterviewPost() http.HandlerFunc {
 		}
 		r.ParseForm()
 		eventString := r.FormValue("event")
+		timeString := r.FormValue("time")
+		time, err := helpers.ParseDateTimeLocalString(timeString)
+		if err != nil {
+			session.AddFlash("time is required")
+			session.Save(r, w)
+			http.Redirect(w, r, referer, http.StatusFound)
+			return
+		}
 		var event models.Event
 		err = app.DB.GetEventByEventID(&event, eventString)
 		if err != nil {
@@ -376,7 +404,7 @@ func (app *App) ConfirmInterviewPost() http.HandlerFunc {
 			http.Redirect(w, r, referer, http.StatusFound)
 			return
 		}
-		err = app.DB.ConfirmInterviewEvent(event.EventID, time.Now())
+		err = app.DB.ConfirmInterviewEvent(event.EventID, time)
 		if err != nil {
 			app.L.WithError(err).Debugln("ConfirmInterviewEvent")
 			session.AddFlash("Something is wrong")

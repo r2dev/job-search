@@ -77,7 +77,7 @@ func (db *DB) ConfirmInterviewEvent(eventID primitive.ObjectID, timeOption time.
 	defer cancel()
 	collection := db.Database(viper.GetString("mongo_db")).Collection("events")
 	res, err := collection.UpdateOne(ctx, bson.M{"_id": eventID},
-		bson.M{"status": StatusInterviewConfirmed, "eventTime": primitive.NewDateTimeFromTime(timeOption)})
+		bson.M{"$set": bson.M{"status": StatusInterviewConfirmed, "eventTime": primitive.NewDateTimeFromTime(timeOption)}})
 	if err != nil {
 		return errors.Wrap(err, "confirm interview event failed")
 	}

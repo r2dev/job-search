@@ -48,10 +48,11 @@ func (app *App) CreateJob(w http.ResponseWriter, r *http.Request) {
 	paymentMethod := request.PaymentMethod
 	currency := request.Currency
 	rate := request.Rate
-	startDate := helpers.ParseJavascriptTimeString(request.StartDateString)
-	endDate := helpers.ParseJavascriptTimeString(request.EndDateString)
-	startTime := helpers.ParseJavascriptTimeString(request.StartTimeString)
-	endTime := helpers.ParseJavascriptTimeString(request.EndTimeString)
+	// @todo handle error
+	startDate, err := helpers.ParseJavascriptTimeString(request.StartDateString)
+	endDate, err := helpers.ParseJavascriptTimeString(request.EndDateString)
+	startTime, err := helpers.ParseJavascriptTimeString(request.StartTimeString)
+	endTime, err := helpers.ParseJavascriptTimeString(request.EndTimeString)
 	description := request.Description
 	reminder := request.Reminder
 	company := request.Company

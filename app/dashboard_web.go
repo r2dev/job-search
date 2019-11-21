@@ -303,6 +303,7 @@ func (app *App) DashboardApplicationDetailGet() http.HandlerFunc {
 			"login":          login,
 			csrf.TemplateTag: csrf.TemplateField(r),
 			"messages":       messages,
+			"application":    application,
 		})
 
 	}

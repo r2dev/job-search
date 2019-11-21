@@ -71,7 +71,7 @@ func (db *DB) UpdateApplicationStatus(applicationID primitive.ObjectID, status i
 	defer cancel()
 	collection := db.Database(viper.GetString("mongo_db")).Collection("applications")
 	res, err := collection.UpdateOne(
-		ctx, bson.M{"_id": applicationID}, bson.M{"status": status})
+		ctx, bson.M{"_id": applicationID}, bson.M{"$set": bson.M{"status": status}})
 	if err != nil {
 		return errors.Wrap(err, "update application failed")
 	}
