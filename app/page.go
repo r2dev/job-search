@@ -63,7 +63,7 @@ func (app *App) IndexGet() http.HandlerFunc {
 
 }
 
-func (app *App) RegisterCompanyGet() http.HandlerFunc {
+func (app *App) DashboardRegisterCompanyGet() http.HandlerFunc {
 	var (
 		init sync.Once
 		tpl  *template.Template
@@ -146,46 +146,6 @@ func (app *App) RegisterCompanyPost() http.HandlerFunc {
 		return
 	}
 
-}
-
-func (app *App) CompanyAdminGet() http.HandlerFunc {
-	var (
-		init sync.Once
-		tpl  *template.Template
-		err  error
-	)
-	return func(w http.ResponseWriter, r *http.Request) {
-		init.Do(func() {
-			tpl, err = template.ParseFiles(
-				"./templates/layout/base.html", "./templates/company-admin.html")
-		})
-		if err != nil {
-			response.InternalServerError(w, err.Error())
-			return
-		}
-		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
-		login := false
-		if _, ok := session.Values["n_0"]; ok {
-			login = true
-		}
-		flash := session.Flashes()
-		session.Save(r, w)
-		var messages []string
-		if flash != nil {
-			for _, f := range flash {
-				fString, ok := f.(string)
-				if ok {
-					messages = append(messages, fString)
-				}
-
-			}
-		}
-		tpl.Execute(w, map[string]interface{}{
-			"login":          login,
-			csrf.TemplateTag: csrf.TemplateField(r),
-			"messages":       messages,
-		})
-	}
 }
 
 func (app *App) PostJobPost() http.HandlerFunc {

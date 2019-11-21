@@ -74,13 +74,12 @@ func CreateServer() *App {
 		r.Get("/login", app.LoginUserGet)
 		r.Post("/login", app.LoginUserPost)
 		r.Post("/logout", app.LogoutUserPost)
-		r.Post("/dashboard/logout", app.LogoutUserPost)
 
 		r.Get("/dashboard", app.DashboardGet())
 
 		r.Get("/dashboard/company", app.DashboardCompanyGet())
-		r.Get("/dashboard/company/{companyID}/admin", app.CompanyAdminGet())
-		r.Get("/dashboard/company-register", app.RegisterCompanyGet())
+		r.Get("/dashboard/company/{companyID}/admin", app.DashboardCompanyGet())
+		r.Get("/dashboard/company-register", app.DashboardRegisterCompanyGet())
 		r.Post("/dashboard/company-register", app.RegisterCompanyPost())
 		r.Get("/dashboard/post-job", app.DashboardPostJobGet())
 		r.Post("/dashboard/post-job", app.PostJobPost())
