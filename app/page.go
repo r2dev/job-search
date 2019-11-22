@@ -427,3 +427,15 @@ func (app *App) ConfirmInterviewPost() http.HandlerFunc {
 		return
 	}
 }
+
+func CreateEmploymentPost() http.HandlerFunc {
+	return (w http.ResponseWriter, r *http.Request) {
+		
+	}
+}
+
+func ScheduleWorkPost() http.HandlerFunc {
+	return (w http.ResponseWriter, r *http.Request) {
+
+	}
+}

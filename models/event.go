@@ -161,7 +161,7 @@ func (db *DB) ConfirmWorkEvent(eventID primitive.ObjectID) error {
 	defer cancel()
 	collection := db.Database(viper.GetString("mongo_db")).Collection("events")
 	res, err := collection.UpdateOne(ctx, bson.M{"_id": eventID},
-		bson.M{"status": StatusWorkConfirmed})
+		bson.M{"$set": bson.M{"status": StatusWorkConfirmed}})
 	if err != nil {
 		return errors.Wrap(err, "confirm work event failed")
 	}
@@ -176,7 +176,8 @@ func (db *DB) DeclineWorkEvent(eventID primitive.ObjectID, reason string) error 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	collection := db.Database(viper.GetString("mongo_db")).Collection("events")
-	res, err := collection.UpdateOne(ctx, bson.M{"_id": eventID}, bson.M{"reason": reason, "status": StatusWorkDeclined})
+	res, err := collection.UpdateOne(ctx, bson.M{"_id": eventID},
+		bson.M{"$set": bson.M{"reason": reason, "status": StatusWorkDeclined}})
 	if err != nil {
 		return errors.Wrap(err, "decline interview event failed")
 	}
