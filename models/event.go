@@ -203,10 +203,10 @@ func (db *DB) GetEventByEventID(event *Event, eventIDString string) error {
 	return nil
 }
 
-func (db *DB) GetEventsByAttendee(events *[]Event, attendee primitive.ObjectID, limit int64, skip int64) error {
+func (db *DB) GetEventsByAttendee(events *[]Event, attendee primitive.ObjectID, limit int, skip int) error {
 	collection := db.Database(viper.GetString("mongo_db")).Collection("events")
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
-	cur, err := collection.Find(ctx, bson.M{"attendee": attendee}, options.Find().SetLimit(limit).SetSkip(skip))
+	cur, err := collection.Find(ctx, bson.M{"attendee": attendee}, options.Find().SetLimit(int64(limit)).SetSkip(int64(skip)))
 	if err != nil {
 		return err
 	}

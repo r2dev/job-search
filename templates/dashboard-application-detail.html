@@ -3,29 +3,42 @@ Application detail
 {{ end }}
 
 {{ define "content"}}
-<form action="/interview/create" method="POST">
-  <div class="field">
-    <label class="label">time 1</label>
-    <div class="control">
-      <input type="datetime-local" class="input" name="time1">
-    </div>
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-header-title">
+      Schedule interview
+    </h2>
   </div>
-  <div class="field">
-    <label class="label">time 2</label>
-    <div class="control">
-      <input type="datetime-local" class="input" name="time2">
-    </div>
+  <div class="card-content">
+    <form action="/interview/create" method="POST">
+      <div class="field">
+        <label class="label">time 1</label>
+        <div class="control">
+          <input type="datetime-local" class="input" name="time1" />
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">time 2</label>
+        <div class="control">
+          <input type="datetime-local" class="input" name="time2" />
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">time 3</label>
+        <div class="control">
+          <input type="datetime-local" class="input" name="time3" />
+        </div>
+      </div>
+      {{.csrfField}}
+      <input
+        type="hidden"
+        value="{{.application.ApplicationID.Hex}}"
+        name="application"
+      />
+      <button type="submit">Schedule interview</button>
+    </form>
   </div>
-  <div class="field">
-    <label class="label">time 3</label>
-    <div class="control">
-      <input type="datetime-local" class="input" name="time3">
-    </div>
-  </div>
-  {{.csrfField}}
-  <input type="hidden" value="{{.application.ApplicationID.Hex}}" name="application">
-  <button type="submit">Schedule interview</button>
-</form>
+</div>
 
 {{ range.messages }}
 <div class="notification">

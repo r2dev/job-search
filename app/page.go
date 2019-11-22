@@ -49,7 +49,7 @@ func (app *App) IndexGet() http.HandlerFunc {
 			}
 		}
 		var jobs []models.Job
-		err := app.DB.GetJobs(&jobs)
+		err := app.DB.GetJobs(&jobs, 10, 0)
 		if err != nil {
 			response.InternalServerError(w, err.Error())
 			return
@@ -428,14 +428,8 @@ func (app *App) ConfirmInterviewPost() http.HandlerFunc {
 	}
 }
 
-func CreateEmploymentPost() http.HandlerFunc {
-	return (w http.ResponseWriter, r *http.Request) {
-		
-	}
-}
-
 func ScheduleWorkPost() http.HandlerFunc {
-	return (w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 
 	}
 }

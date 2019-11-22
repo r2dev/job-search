@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type location struct {
@@ -122,11 +123,11 @@ func (db *DB) GetJobsByCreator(jobs *[]Job, creatorID string) error {
 	return nil
 }
 
-func (db *DB) GetJobs(jobs *[]Job) error {
+func (db *DB) GetJobs(jobs *[]Job, limit int, skip int) error {
 
 	collection := db.Database(viper.GetString("mongo_db")).Collection("jobs")
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
-	cur, err := collection.Find(ctx, bson.M{})
+	cur, err := collection.Find(ctx, bson.M{}, options.Find().SetLimit(int64(limit)).SetSkip(int64(skip)))
 	if err != nil {
 		return err
 	}
