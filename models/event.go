@@ -221,3 +221,22 @@ func (db *DB) GetEventsByAttendee(events *[]Event, attendee primitive.ObjectID, 
 	}
 	return nil
 }
+
+func (db *DB) GetEventsByApplicationID(events *[]Event, applicationID primitive.ObjectID) (err error) {
+	collection := db.Database(viper.GetString("mongo_db")).Collection("events")
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	cur, err := collection.Find(ctx, bson.M{"application": applicationID})
+	if err != nil {
+		return
+	}
+	defer cur.Close(ctx)
+	for cur.Next(ctx) {
+		var temp Event
+		err = cur.Decode(&temp)
+		if err != nil {
+			return
+		}
+		*events = append(*events, temp)
+	}
+	return
+}

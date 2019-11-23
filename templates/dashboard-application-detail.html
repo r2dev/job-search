@@ -3,40 +3,66 @@ Application detail
 {{ end }}
 
 {{ define "content"}}
-<div class="card">
-  <div class="card-header">
-    <h2 class="card-header-title">
-      Schedule interview
-    </h2>
+<div class="columns">
+  <div class="column is-three-quarters">
+    {{range $i, $v :=.events}}
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-header-title">
+          {{ $v.EventType }}
+        </h2>
+      </div>
+      <div class="card-content">
+        {{range $v.TimeOptions}}
+        <div>{{.}}</div>
+        {{ end }}
+      </div>
+      <footer class="card-footer">
+        <a href="#" class="card-footer-item">Proceed</a>
+        <a href="#" class="card-footer-item">Reject</a>
+        <a href="#" class="card-footer-item">Update</a>
+        <a href="#" class="card-footer-item">Cancel</a>
+      </footer>
+    </div>
+    {{ end }}
   </div>
-  <div class="card-content">
-    <form action="/interview/create" method="POST">
-      <div class="field">
-        <label class="label">time 1</label>
-        <div class="control">
-          <input type="datetime-local" class="input" name="time1" />
-        </div>
+  <div class="column">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-header-title">
+          Schedule interview
+        </h2>
       </div>
-      <div class="field">
-        <label class="label">time 2</label>
-        <div class="control">
-          <input type="datetime-local" class="input" name="time2" />
-        </div>
+      <div class="card-content">
+        <form action="/interview/create" method="POST">
+          <div class="field">
+            <label class="label">time 1</label>
+            <div class="control">
+              <input type="datetime-local" class="input" name="time1" />
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">time 2</label>
+            <div class="control">
+              <input type="datetime-local" class="input" name="time2" />
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">time 3</label>
+            <div class="control">
+              <input type="datetime-local" class="input" name="time3" />
+            </div>
+          </div>
+          {{.csrfField}}
+          <input
+            type="hidden"
+            value="{{.application.ApplicationID.Hex}}"
+            name="application"
+          />
+          <button type="submit">Schedule interview</button>
+        </form>
       </div>
-      <div class="field">
-        <label class="label">time 3</label>
-        <div class="control">
-          <input type="datetime-local" class="input" name="time3" />
-        </div>
-      </div>
-      {{.csrfField}}
-      <input
-        type="hidden"
-        value="{{.application.ApplicationID.Hex}}"
-        name="application"
-      />
-      <button type="submit">Schedule interview</button>
-    </form>
+    </div>
   </div>
 </div>
 

@@ -224,7 +224,6 @@ func (app *App) DashboardJobDetailGet() http.HandlerFunc {
 			http.Redirect(w, r, "/login", http.StatusFound)
 			return
 		}
-		login := true
 		jobID := chi.URLParam(r, "jobID")
 		var job models.Job
 		err := app.DB.GetJobByID(&job, jobID)
@@ -246,7 +245,7 @@ func (app *App) DashboardJobDetailGet() http.HandlerFunc {
 			}
 		}
 		tpl.Execute(w, map[string]interface{}{
-			"login":          login,
+			"login":          true,
 			csrf.TemplateTag: csrf.TemplateField(r),
 			"messages":       messages,
 			"title":          job.Title,
@@ -257,15 +256,15 @@ func (app *App) DashboardJobDetailGet() http.HandlerFunc {
 
 func (app *App) DashboardApplicationDetailGet() http.HandlerFunc {
 	var (
-		init sync.Once
-		tpl  *template.Template
-		err  error
+		// init sync.Once
+		tpl *template.Template
+		err error
 	)
 	return func(w http.ResponseWriter, r *http.Request) {
-		init.Do(func() {
-			tpl, err = template.ParseFiles(
-				"./templates/layout/base-dashboard.html", "./templates/dashboard-application-detail.html")
-		})
+		// init.Do(func() {
+		tpl, err = template.ParseFiles(
+			"./templates/layout/base-dashboard.html", "./templates/dashboard-application-detail.html")
+		// })
 		if err != nil {
 			response.InternalServerError(w, err.Error())
 			return
@@ -299,11 +298,14 @@ func (app *App) DashboardApplicationDetailGet() http.HandlerFunc {
 			response.InternalServerError(w, err.Error())
 			return
 		}
+		var events []models.Event
+		err = app.DB.GetEventsByApplicationID(&events, application.ApplicationID)
 		tpl.Execute(w, map[string]interface{}{
 			"login":          login,
 			csrf.TemplateTag: csrf.TemplateField(r),
 			"messages":       messages,
 			"application":    application,
+			"events":         events,
 		})
 
 	}
