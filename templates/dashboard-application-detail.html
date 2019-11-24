@@ -9,12 +9,24 @@ Application detail
     <div class="card">
       <div class="card-header">
         <h2 class="card-header-title">
-          {{ $v.EventType }}
+          {{ if $v.IsInterview}}
+            Interview
+          {{end}}
         </h2>
       </div>
       <div class="card-content">
-        {{$v.Status }}
-        {{range $v.TimeOptions}}
+        Status:
+        {{ if or $v.IsInterviewCreated $v.IsInterviewUpdated}}
+          <span>Waiting for confirmation</span>
+        {{end}}
+        {{ if $v.IsInterviewConfirmed}}
+          <span>Confirmed</span>
+        {{end}}
+        {{ if $v.IsInterviewCancelled}}
+          <span>Cancelled</span>
+        {{end}}
+        
+        {{range $v.TimeOptionsDisplay}}
         <div>{{.}}</div>
         {{ end }}
       </div>

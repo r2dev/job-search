@@ -36,12 +36,52 @@ func (e *Event) Confirmed() bool {
 	return e.Status == StatusInterviewConfirmed || e.Status == StatusWorkConfirmed
 }
 
+func (e *Event) IsInterview() bool {
+	return e.EventType == EventInterview
+}
+
+func (e *Event) IsInterviewCreated() bool {
+	return e.Status == StatusInterviewCreated
+}
+
+func (e *Event) IsInterviewConfirmed() bool {
+	return e.Status == StatusInterviewConfirmed
+}
+
+func (e *Event) IsInterviewUpdated() bool {
+	return e.Status == StatusInterviewUpdated
+}
+
+func (e *Event) IsInterviewDeclined() bool {
+	return e.Status == StatusInterviewDeclined
+}
+
+func (e *Event) IsInterviewCancelled() bool {
+	return e.Status == StatusInterviewCancelled
+}
+
+func (e *Event) TimeOptionsDisplay() (strings []string) {
+	for _, v := range e.TimeOptions {
+		strings = append(strings, humanTime(v))
+	}
+	return
+}
+
+func humanTime(t time.Time) string {
+	// return t.Local().Format("15:04 2006-01-02")
+	return t.Location().String() + " " + t.Format("15:04 2006-01-02")
+}
+
+func (e *Event) IsWork() bool {
+	return e.EventType == EventWork
+}
+
 const (
 	StatusInterviewCreated = iota + 1
 	StatusInterviewUpdated
 	StatusInterviewConfirmed
 	StatusInterviewDeclined
-	StatusInterviewCancel
+	StatusInterviewCancelled
 
 	StatusWorkCreated
 	StatusWorkConfirmed
@@ -131,7 +171,7 @@ func (db *DB) CancelInterviewEvent(eventID primitive.ObjectID) error {
 	defer cancel()
 	collection := db.Database(viper.GetString("mongo_db")).Collection("events")
 
-	res, err := collection.UpdateOne(ctx, bson.M{"_id": eventID}, bson.M{"status": StatusInterviewCancel})
+	res, err := collection.UpdateOne(ctx, bson.M{"_id": eventID}, bson.M{"status": StatusInterviewCancelled})
 	if err != nil {
 		return errors.Wrap(err, "decline interview event failed")
 	}
