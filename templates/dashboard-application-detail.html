@@ -13,15 +13,19 @@ Application detail
         </h2>
       </div>
       <div class="card-content">
+        {{$v.Status }}
         {{range $v.TimeOptions}}
         <div>{{.}}</div>
         {{ end }}
       </div>
       <footer class="card-footer">
-        <a href="#" class="card-footer-item">Proceed</a>
-        <a href="#" class="card-footer-item">Reject</a>
+        {{if not $v.Confirmed }}
         <a href="#" class="card-footer-item">Update</a>
         <a href="#" class="card-footer-item">Cancel</a>
+        {{else }}
+        <a href="#" class="card-footer-item">Proceed</a>
+        <a href="#" class="card-footer-item">Reject</a>
+        {{end}}
       </footer>
     </div>
     {{ end }}

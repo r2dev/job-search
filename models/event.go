@@ -32,10 +32,12 @@ type Event struct {
 	TimeOptions []time.Time        `bson:"timeOptions"`
 }
 
-type StatusInterview int
+func (e *Event) Confirmed() bool {
+	return e.Status == StatusInterviewConfirmed || e.Status == StatusWorkConfirmed
+}
 
 const (
-	StatusInterviewCreated StatusInterview = iota + 1
+	StatusInterviewCreated = iota + 1
 	StatusInterviewUpdated
 	StatusInterviewConfirmed
 	StatusInterviewDeclined
