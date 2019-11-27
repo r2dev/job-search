@@ -3,6 +3,7 @@ Dashboard
 {{ end }}
 
 {{ define "content"}}
+{{$csrfField := .csrfField}}
 {{range $i, $v :=.events}}
     <div class="card">
       <div class="card-header">
@@ -31,13 +32,13 @@ Dashboard
       <footer class="card-footer">
         {{if or $v.IsInterviewCreated $v.IsInterviewUpdated }}
         <form action="/interview/confirm" method="POST">
-        
-          <input type="hidden" value="{{$v.EventID}}" name="event">
+          {{$csrfField}}
+          <input type="hidden" value="{{$v.EventID.Hex}}" name="event">
           <div class="control">
-            {{range $v.TimeOptionsDisplay}}
+            {{range $idx, $td := $v.TimeOptionsDisplay}}
             <label class="radio">
-              <input type="radio" name="time">
-              {{.}}
+              <input type="radio" name="time" value="{{index $v.TimeOptions $idx}}">
+              {{$td}}
             </label>
             {{end}}
           </div>

@@ -50,7 +50,6 @@ func (app *App) DashboardGet() http.HandlerFunc {
 
 		var events []models.Event
 		err = app.DB.GetActionableEventsByAttendee(&events, userID, 10, 0)
-		app.L.Debug(events)
 		tpl.Execute(w, map[string]interface{}{
 			"login":          login,
 			csrf.TemplateTag: csrf.TemplateField(r),
