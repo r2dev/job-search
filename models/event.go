@@ -103,7 +103,8 @@ func (db *DB) CreateInterviewEvent(
 		timeOptionsBson = append(timeOptionsBson, primitive.NewDateTimeFromTime(timeOption))
 	}
 	res, err := collection.InsertOne(ctx,
-		bson.M{"application": application, "hireManager": hireManager, "timeOptions": timeOptionsBson, "status": StatusInterviewCreated, "attendee": attendee, "eventType": EventInterview})
+		bson.M{"application": application, "hireManager": hireManager, "timeOptions": timeOptionsBson,
+			"status": StatusInterviewCreated, "attendee": attendee, "eventType": EventInterview, "actionRequired": true})
 	if err != nil {
 		return errors.Wrap(err, "insert event failed")
 	}
@@ -119,7 +120,7 @@ func (db *DB) ConfirmInterviewEvent(eventID primitive.ObjectID, timeOption time.
 	defer cancel()
 	collection := db.Database(viper.GetString("mongo_db")).Collection("events")
 	res, err := collection.UpdateOne(ctx, bson.M{"_id": eventID},
-		bson.M{"$set": bson.M{"status": StatusInterviewConfirmed, "eventTime": primitive.NewDateTimeFromTime(timeOption)}})
+		bson.M{"$set": bson.M{"status": StatusInterviewConfirmed, "eventTime": primitive.NewDateTimeFromTime(timeOption), "actionRequired": false}})
 	if err != nil {
 		return errors.Wrap(err, "confirm interview event failed")
 	}
@@ -135,7 +136,7 @@ func (db *DB) DeclineInterviewEvent(eventID primitive.ObjectID, reason string) e
 	defer cancel()
 	collection := db.Database(viper.GetString("mongo_db")).Collection("events")
 	res, err := collection.UpdateOne(ctx, bson.M{"_id": eventID},
-		bson.M{"reason": reason, "status": StatusInterviewDeclined})
+		bson.M{"reason": reason, "status": StatusInterviewDeclined, "actionRequired": false})
 	if err != nil {
 		return errors.Wrap(err, "decline interview event failed")
 	}
@@ -155,7 +156,7 @@ func (db *DB) UpdateInterviewEvent(eventID primitive.ObjectID, hireManager primi
 		timeOptionsBson = append(timeOptionsBson, primitive.NewDateTimeFromTime(timeOption))
 	}
 	res, err := collection.UpdateOne(ctx, bson.M{"_id": eventID},
-		bson.M{"hireManger": hireManager, "timeOptions": timeOptions, "status": StatusInterviewUpdated})
+		bson.M{"hireManger": hireManager, "timeOptions": timeOptions, "status": StatusInterviewUpdated, "actionRequired": true})
 	if err != nil {
 		return errors.Wrap(err, "decline interview event failed")
 	}
@@ -171,7 +172,7 @@ func (db *DB) CancelInterviewEvent(eventID primitive.ObjectID) error {
 	defer cancel()
 	collection := db.Database(viper.GetString("mongo_db")).Collection("events")
 
-	res, err := collection.UpdateOne(ctx, bson.M{"_id": eventID}, bson.M{"status": StatusInterviewCancelled})
+	res, err := collection.UpdateOne(ctx, bson.M{"_id": eventID}, bson.M{"status": StatusInterviewCancelled, "actionRequired": false})
 	if err != nil {
 		return errors.Wrap(err, "decline interview event failed")
 	}
@@ -245,10 +246,36 @@ func (db *DB) GetEventByEventID(event *Event, eventIDString string) error {
 	return nil
 }
 
-func (db *DB) GetEventsByAttendee(events *[]Event, attendee primitive.ObjectID, limit int, skip int) error {
+func (db *DB) GetEventsByAttendee(events *[]Event, attendee string, limit int, skip int) error {
+	attendeeID, err := primitive.ObjectIDFromHex(attendee)
+	if err != nil {
+		return err
+	}
 	collection := db.Database(viper.GetString("mongo_db")).Collection("events")
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
-	cur, err := collection.Find(ctx, bson.M{"attendee": attendee}, options.Find().SetLimit(int64(limit)).SetSkip(int64(skip)))
+	cur, err := collection.Find(ctx, bson.M{"attendee": attendeeID}, options.Find().SetLimit(int64(limit)).SetSkip(int64(skip)))
+	if err != nil {
+		return err
+	}
+	defer cur.Close(ctx)
+	for cur.Next(ctx) {
+		var temp Event
+		err := cur.Decode(&temp)
+		if err != nil {
+			return err
+		}
+		*events = append(*events, temp)
+	}
+	return nil
+}
+func (db *DB) GetActionableEventsByAttendee(events *[]Event, attendee string, limit int, skip int) error {
+	attendeeID, err := primitive.ObjectIDFromHex(attendee)
+	if err != nil {
+		return err
+	}
+	collection := db.Database(viper.GetString("mongo_db")).Collection("events")
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	cur, err := collection.Find(ctx, bson.M{"attendee": attendeeID, "actionRequired": true}, options.Find().SetLimit(int64(limit)).SetSkip(int64(skip)))
 	if err != nil {
 		return err
 	}

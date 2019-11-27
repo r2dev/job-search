@@ -13,24 +13,28 @@ import (
 
 func (app *App) DashboardGet() http.HandlerFunc {
 	var (
-		init sync.Once
-		tpl  *template.Template
-		err  error
+		// init sync.Once
+		tpl *template.Template
+		err error
 	)
 	return func(w http.ResponseWriter, r *http.Request) {
-		init.Do(func() {
-			tpl, err = template.ParseFiles(
-				"./templates/layout/base-dashboard.html", "./templates/dashboard.html")
-		})
+		// init.Do(func() {
+		tpl, err = template.ParseFiles(
+			"./templates/layout/base-dashboard.html", "./templates/dashboard.html")
+		// })
 		if err != nil {
 			response.InternalServerError(w, err.Error())
 			return
 		}
 		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
-		login := false
-		if _, ok := session.Values["n_0"]; ok {
-			login = true
+
+		userID, ok := session.Values["n_0"].(string)
+		if !ok {
+			session.AddFlash("Please login first")
+			http.Redirect(w, r, "/login", http.StatusFound)
+			return
 		}
+		login := true
 		flash := session.Flashes()
 		session.Save(r, w)
 		var messages []string
@@ -43,11 +47,16 @@ func (app *App) DashboardGet() http.HandlerFunc {
 
 			}
 		}
+
+		var events []models.Event
+		err = app.DB.GetActionableEventsByAttendee(&events, userID, 10, 0)
+		app.L.Debug(events)
 		tpl.Execute(w, map[string]interface{}{
 			"login":          login,
 			csrf.TemplateTag: csrf.TemplateField(r),
 			"messages":       messages,
 			"IsDashboard":    true,
+			"events":         events,
 		})
 	}
 }
@@ -68,10 +77,14 @@ func (app *App) DashboardCompanyGet() http.HandlerFunc {
 			return
 		}
 		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
-		login := false
-		if _, ok := session.Values["n_0"]; ok {
-			login = true
+		_, ok := session.Values["n_0"]
+		if !ok {
+			session.AddFlash("Please login first")
+			http.Redirect(w, r, "/login", http.StatusFound)
+			return
 		}
+		login := true
+
 		flash := session.Flashes()
 		session.Save(r, w)
 		var messages []string
@@ -143,6 +156,7 @@ func (app *App) DashboardPostJobGet() http.HandlerFunc {
 			csrf.TemplateTag: csrf.TemplateField(r),
 			"messages":       messages,
 			"companies":      companies,
+			"isDashboard":    true,
 		})
 	}
 }
@@ -196,6 +210,7 @@ func (app *App) DashboardJobListGet() http.HandlerFunc {
 			csrf.TemplateTag: csrf.TemplateField(r),
 			"messages":       messages,
 			"jobs":           jobs,
+			"isDashboard":    true,
 		})
 	}
 }
@@ -250,6 +265,7 @@ func (app *App) DashboardJobDetailGet() http.HandlerFunc {
 			"messages":       messages,
 			"title":          job.Title,
 			"id":             job.JobID.Hex(),
+			"isDashboard":    true,
 		})
 	}
 }
@@ -306,6 +322,7 @@ func (app *App) DashboardApplicationDetailGet() http.HandlerFunc {
 			"messages":       messages,
 			"application":    application,
 			"events":         events,
+			"isDashboard":    true,
 		})
 
 	}
@@ -360,6 +377,7 @@ func (app *App) DashboardApplicationListGet() http.HandlerFunc {
 			csrf.TemplateTag: csrf.TemplateField(r),
 			"messages":       messages,
 			"applications":   applications,
+			"isDashboard":    true,
 		})
 	}
 }
