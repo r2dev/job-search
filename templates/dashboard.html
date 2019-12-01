@@ -36,8 +36,9 @@ Dashboard
           <input type="hidden" value="{{$v.EventID.Hex}}" name="event">
           <div class="control">
             {{range $idx, $td := $v.TimeOptionsDisplay}}
+            {{$time := index $v.TimeOptions $idx}}
             <label class="radio">
-              <input type="radio" name="time" value="{{index $v.TimeOptions $idx}}">
+              <input type="radio" name="time" value="{{$time.Unix}}">
               {{$td}}
             </label>
             {{end}}
@@ -49,4 +50,9 @@ Dashboard
       </footer>
     </div>
     {{ end }}
+    {{ range.messages }}
+<div class="notification">
+  {{.}}
+</div>
+{{ end }}
 {{ end }}

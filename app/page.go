@@ -388,8 +388,9 @@ func (app *App) ConfirmInterviewPost() http.HandlerFunc {
 		r.ParseForm()
 		eventString := r.FormValue("event")
 		timeString := r.FormValue("time")
-		time, err := helpers.ParseDateTimeLocalString(timeString)
+		time, err := helpers.ParseUnixString(timeString)
 		if err != nil {
+			app.L.WithError(err).Debugln("GetEventByEventID")
 			session.AddFlash("time is required")
 			session.Save(r, w)
 			http.Redirect(w, r, referer, http.StatusFound)
@@ -421,7 +422,7 @@ func (app *App) ConfirmInterviewPost() http.HandlerFunc {
 			http.Redirect(w, r, referer, http.StatusFound)
 			return
 		}
-		session.AddFlash("interview create")
+		session.AddFlash("interview confirmed")
 		session.Save(r, w)
 		http.Redirect(w, r, referer, http.StatusSeeOther)
 		return
