@@ -115,10 +115,6 @@ func (db *DB) CreateInterviewEvent(
 	return nil
 }
 
-func (db *DB) CreateWorkEvent(hireManager primitive.ObjectID, workTime time.Time) error {
-	return nil
-}
-
 func (db *DB) ConfirmInterviewEvent(eventID primitive.ObjectID, timeOption time.Time) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -187,12 +183,12 @@ func (db *DB) CancelInterviewEvent(eventID primitive.ObjectID) error {
 	return nil
 }
 
-func (db *DB) CreateWorkEvent(attendee primitive.ObjectID, eventTime time.Time) error {
+func (db *DB) CreateWorkEvent(attendee primitive.ObjectID, eventTime time.Time, eventEndTime time.Time) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	collection := db.Database(viper.GetString("mongo_db")).Collection("events")
 	res, err := collection.InsertOne(ctx,
-		bson.M{"eventTime": eventTime, "status": StatusWorkCreated, "attendee": attendee, "eventType": EventWork})
+		bson.M{"eventTime": eventTime, "eventEndTime": eventEndTime, "status": StatusWorkCreated, "attendee": attendee, "eventType": EventWork})
 	if err != nil {
 		return errors.Wrap(err, "insert event failed")
 	}

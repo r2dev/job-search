@@ -429,7 +429,7 @@ func (app *App) ConfirmInterviewPost() http.HandlerFunc {
 	}
 }
 
-func ScheduleWorkPost() http.HandlerFunc {
+func (app *App) ScheduleWorkPost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		referer := r.Referer()
 		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
@@ -448,17 +448,25 @@ func ScheduleWorkPost() http.HandlerFunc {
 			return
 		}
 		r.ParseForm()
-		// applicationString := r.FormValue("application")
-		var workTimeString time.Time
+		workTimeString := r.FormValue("time")
+
 		workTime, err := helpers.ParseDateTimeLocalString(workTimeString)
-		if err == nil {
-			session.AddFlash("no time provide")
+		if err != nil {
+			session.AddFlash("no start time provide")
+			session.Save(r, w)
+			http.Redirect(w, r, referer, http.StatusFound)
+			return
+		}
+		workEndTimeString := r.FormValue("endtime")
+		workEndTime, err := helpers.ParseDateTimeLocalString(workEndTimeString)
+		if err != nil {
+			session.AddFlash("no end time provide")
 			session.Save(r, w)
 			http.Redirect(w, r, referer, http.StatusFound)
 			return
 		}
 
-		err = app.DB.CreateWorkEvent(userObjectID, userObjectID, workTime)
+		err = app.DB.CreateWorkEvent(userObjectID, workTime, workEndTime)
 		if err != nil {
 			app.L.WithError(err).Debugln("CreateWorkEvent")
 			session.AddFlash("Something is wrong")
