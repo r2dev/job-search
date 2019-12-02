@@ -93,7 +93,7 @@ func (db *DB) CreateInterviewEvent(
 	application primitive.ObjectID,
 	attendee primitive.ObjectID,
 	hireManager primitive.ObjectID,
-	timeOptions ...time.Time,
+	timeOptions []time.Time,
 ) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -112,6 +112,10 @@ func (db *DB) CreateInterviewEvent(
 	if !ok {
 		return errors.New("could not convert to string")
 	}
+	return nil
+}
+
+func (db *DB) CreateWorkEvent(hireManager primitive.ObjectID, workTime time.Time) error {
 	return nil
 }
 

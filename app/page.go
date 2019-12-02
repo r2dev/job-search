@@ -344,7 +344,7 @@ func (app *App) ScheduleInterviewPost() http.HandlerFunc {
 			http.Redirect(w, r, referer, http.StatusFound)
 			return
 		}
-		err = app.DB.CreateInterviewEvent(application.ApplicationID, application.Applicant, userObjectID, time.Now())
+		err = app.DB.CreateInterviewEvent(application.ApplicationID, application.Applicant, userObjectID, timeOptions)
 		if err != nil {
 			app.L.WithError(err).Debugln("CreateInterviewEvent")
 			session.AddFlash("Something is wrong")
@@ -431,6 +431,45 @@ func (app *App) ConfirmInterviewPost() http.HandlerFunc {
 
 func ScheduleWorkPost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		referer := r.Referer()
+		session, _ := app.S.Get(r, "r_u_n_a_w_a_y")
+		userID, ok := session.Values["n_0"].(string)
+		if !ok {
+			session.AddFlash("Please login first")
+			session.Save(r, w)
+			http.Redirect(w, r, "/login", http.StatusFound)
+			return
+		}
+		userObjectID, err := primitive.ObjectIDFromHex(userID)
+		if err != nil {
+			session.AddFlash("Something is wrong")
+			session.Save(r, w)
+			http.Redirect(w, r, referer, http.StatusFound)
+			return
+		}
+		r.ParseForm()
+		// applicationString := r.FormValue("application")
+		var workTimeString time.Time
+		workTime, err := helpers.ParseDateTimeLocalString(workTimeString)
+		if err == nil {
+			session.AddFlash("no time provide")
+			session.Save(r, w)
+			http.Redirect(w, r, referer, http.StatusFound)
+			return
+		}
 
+		err = app.DB.CreateWorkEvent(userObjectID, userObjectID, workTime)
+		if err != nil {
+			app.L.WithError(err).Debugln("CreateWorkEvent")
+			session.AddFlash("Something is wrong")
+			session.Save(r, w)
+			http.Redirect(w, r, referer, http.StatusFound)
+			return
+		}
+
+		session.AddFlash("work create")
+		session.Save(r, w)
+		http.Redirect(w, r, referer, http.StatusSeeOther)
+		return
 	}
 }
