@@ -17,17 +17,9 @@ type Application struct {
 	Applicant     primitive.ObjectID `bson:"applicant"`
 }
 
-func (db *DB) GetApplicationByApplicantAndJob(application *Application, jobStr string, applicantStr string) error {
+func (db *DB) GetApplicationByApplicantAndJob(application *Application, job primitive.ObjectID, applicant primitive.ObjectID) error {
 	collection := db.Database(viper.GetString("mongo_db")).Collection("applications")
-	job, err := primitive.ObjectIDFromHex(jobStr)
-	if err != nil {
-		return err
-	}
-	applicant, err := primitive.ObjectIDFromHex(applicantStr)
-	if err != nil {
-		return err
-	}
-	err = collection.FindOne(context.Background(),
+	err := collection.FindOne(context.Background(),
 		bson.M{"job": job, "applicant": applicant}).Decode(application)
 	if err != nil {
 		return err
@@ -58,15 +50,7 @@ func (db *DB) GetApplicationsByJob(applications *[]Application, jobID string) er
 	return nil
 }
 
-func (db *DB) CreateApplication(applicantStr string, jobStr string, status int) (string, error) {
-	job, err := primitive.ObjectIDFromHex(jobStr)
-	if err != nil {
-		return "", err
-	}
-	applicant, err := primitive.ObjectIDFromHex(applicantStr)
-	if err != nil {
-		return "", err
-	}
+func (db *DB) CreateApplication(applicant primitive.ObjectID, job primitive.ObjectID, status int) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	collection := db.Database(viper.GetString("mongo_db")).Collection("applications")
@@ -82,16 +66,12 @@ func (db *DB) CreateApplication(applicantStr string, jobStr string, status int) 
 	return id.Hex(), nil
 }
 
-func (db *DB) UpdateApplicationStatus(applicationStr string, status int) error {
-	application, err := primitive.ObjectIDFromHex(applicationStr)
-	if err != nil {
-		return err
-	}
+func (db *DB) UpdateApplicationStatus(applicationID primitive.ObjectID, status int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	collection := db.Database(viper.GetString("mongo_db")).Collection("applications")
 	res, err := collection.UpdateOne(
-		ctx, bson.M{"_id": application}, bson.M{"$set": bson.M{"status": status}})
+		ctx, bson.M{"_id": applicationID}, bson.M{"$set": bson.M{"status": status}})
 	if err != nil {
 		return errors.Wrap(err, "update application failed")
 	}

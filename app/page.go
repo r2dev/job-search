@@ -233,11 +233,27 @@ func (app *App) ApplyJobPost() http.HandlerFunc {
 			http.Redirect(w, r, "/login", http.StatusFound)
 			return
 		}
+		userObjectID, err := primitive.ObjectIDFromHex(userID)
+		if err != nil {
+			session.AddFlash("Something is wrong")
+			session.Save(r, w)
+			app.L.Debugln("cant convert user object id")
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
 		r.ParseForm()
 		jobID := r.FormValue("jobID")
+		jobObjectID, err := primitive.ObjectIDFromHex(jobID)
+		if err != nil {
+			session.AddFlash("Something is wrong")
+			session.Save(r, w)
+			app.L.Debugln("cant convert job object id")
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
 
 		var application models.Application
-		err := app.DB.GetApplicationByApplicantAndJob(&application, jobID, userID)
+		err = app.DB.GetApplicationByApplicantAndJob(&application, jobObjectID, userObjectID)
 		if (models.Application{}) != application {
 			session.AddFlash("existed application")
 			session.Save(r, w)
@@ -251,7 +267,7 @@ func (app *App) ApplyJobPost() http.HandlerFunc {
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}
-		_, err = app.DB.CreateApplication(userID, jobID, StatusApplying)
+		_, err = app.DB.CreateApplication(userObjectID, jobObjectID, StatusApplying)
 		if err != nil {
 			session.AddFlash("something is wrong")
 			session.Save(r, w)
@@ -336,7 +352,7 @@ func (app *App) ScheduleInterviewPost() http.HandlerFunc {
 			http.Redirect(w, r, referer, http.StatusFound)
 			return
 		}
-		err = app.DB.UpdateApplicationStatus(applicationString, StatusInterviewing)
+		err = app.DB.UpdateApplicationStatus(application.ApplicationID, StatusInterviewing)
 		if err != nil {
 			app.L.WithError(err).Debugln("UpdateApplicationStatus")
 			session.AddFlash("Something is wrong")
@@ -398,7 +414,7 @@ func (app *App) ConfirmInterviewPost() http.HandlerFunc {
 			return
 		}
 
-		err = app.DB.UpdateApplicationStatus(event.Attendee.Hex(), StatusInterviewing)
+		err = app.DB.UpdateApplicationStatus(event.Attendee, StatusInterviewing)
 		if err != nil {
 			app.L.WithError(err).Debugln("UpdateApplicationStatus")
 			session.AddFlash("Something is wrong")
