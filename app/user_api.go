@@ -3,7 +3,7 @@ package app
 import (
 	"crypto/rand"
 	"encoding/json"
-	"hirine/models"
+	"github.com/r2dev/job-search/models"
 	"io"
 	"net/http"
 

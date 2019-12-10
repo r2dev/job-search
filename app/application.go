@@ -2,8 +2,8 @@ package app
 
 import (
 	"encoding/json"
-	"hirine/helpers"
-	"hirine/models"
+	"github.com/r2dev/job-search/helpers"
+	"github.com/r2dev/job-search/models"
 	"net/http"
 
 	"github.com/tj/go/http/response"

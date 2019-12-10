@@ -1,8 +1,8 @@
 package app
 
 import (
-	"hirine/helpers"
-	"hirine/models"
+	"github.com/r2dev/job-search/helpers"
+	"github.com/r2dev/job-search/models"
 	"net/http"
 	"sync"
 	"text/template"

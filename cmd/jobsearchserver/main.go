@@ -1,7 +1,7 @@
 package main
 
 import (
-	"hirine/app"
+	"github.com/r2dev/job-search/app"
 	"log"
 
 	"github.com/spf13/viper"

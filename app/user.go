@@ -1,7 +1,7 @@
 package app
 
 import (
-	"hirine/models"
+	"github.com/r2dev/job-search/models"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"

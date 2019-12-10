@@ -1,7 +1,7 @@
 package app
 
 import (
-	"hirine/models"
+	"github.com/r2dev/job-search/models"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -53,7 +53,7 @@ func CreateServer() *App {
 		csrf.Secure(false), csrf.Path("/"))
 	store := sessions.NewCookieStore([]byte(viper.GetString("session_secret")))
 	app.S = store
-	e, _ := casbin.NewEnforcer(viper.GetString("casbin_model"), viper.GetString("casbin_policy"))
+	e := casbin.NewEnforcer(viper.GetString("casbin_model"), viper.GetString("casbin_policy"))
 	app.E = e
 
 	r := chi.NewRouter()
