@@ -19,17 +19,19 @@ func (app *App) RegisterUserPost(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/register", http.StatusFound)
 		return
 	}
-	// if we have unique index, we dont need this
-	var user models.User
-	err := app.DB.GetUserByUsername(&user, username)
-	if err != nil && err != models.NoFoundUser {
-		session.AddFlash("Username has been registered")
-		session.Save(r, w)
-		app.L.WithError(err)
+	userExisted, err := app.DB.CheckUserExistByUsername(username)
+	if err != nil {
+		app.L.WithError(err).Warn("CheckUserExistByUsername failed")
 		http.Redirect(w, r, "/register", http.StatusFound)
 		return
 	}
-	_, err = app.DB.CreateUserWithUsernameAndPassword(username, password)
+	if userExisted {
+		session.AddFlash("User existed")
+		session.Save(r, w)
+		http.Redirect(w, r, "/register", http.StatusFound)
+		return
+	}
+	err = app.DB.CreateUserWithUsernameAndPassword(username, password)
 	if err != nil {
 		session.AddFlash("Something is wrong")
 		session.Save(r, w)

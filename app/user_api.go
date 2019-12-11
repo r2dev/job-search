@@ -92,15 +92,13 @@ func (app *App) RegisterWithPassword(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	id, err := app.DB.CreateUserWithUsernameAndPassword(username, password)
+	err = app.DB.CreateUserWithUsernameAndPassword(username, password)
 	if err != nil {
 		app.L.WithError(err)
 		response.Error(w, http.StatusBadGateway)
 		return
 	}
-	response.OK(w, map[string]string{
-		"id": id,
-	})
+	response.OK(w, "OK")
 
 }
 

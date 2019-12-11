@@ -13,15 +13,15 @@ import (
 
 func (app *App) DashboardGet() http.HandlerFunc {
 	var (
-		// init sync.Once
+		init sync.Once
 		tpl *template.Template
 		err error
 	)
 	return func(w http.ResponseWriter, r *http.Request) {
-		// init.Do(func() {
+		init.Do(func() {
 		tpl, err = template.ParseFiles(
 			"./templates/layout/base-dashboard.html", "./templates/dashboard.html")
-		// })
+		})
 		if err != nil {
 			response.InternalServerError(w, err.Error())
 			return

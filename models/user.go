@@ -34,59 +34,69 @@ func (db *DB) GetUserByUsername(user *User, username string) error {
 	return nil
 }
 
-func (db *DB) GetUserByPhoneNumber(phone string) (User, error) {
-	var result User
+func (db *DB) CheckUserExistByUsername(username string) (bool, error) {
 	collection := db.Database(viper.GetString("mongo_db")).Collection("users")
-	err := collection.FindOne(context.Background(), bson.M{"phone": phone}).Decode(&result)
+	count, err := collection.CountDocuments(context.Background(), bson.M{"username": username})
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return User{}, nil
-		}
-		return User{}, err
+		return false, err
 	}
-	return result, nil
+	if count == 0 {
+		return false, nil
+	} else {
+		return true, nil
+	}
+
 }
 
-func (db *DB) GetUserByEmail(email string) (*User, error) {
-	var result *User
-	collection := db.Database(viper.GetString("mongo_db")).Collection("users")
-	err := collection.FindOne(context.Background(), bson.M{"email": email}).Decode(result)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return result, nil
-}
-
-func (db *DB) CreateUserWithUsernameAndPassword(username string, password string) (string, error) {
+func (db *DB) CreateUserWithUsernameAndPassword(username string, password string) error {
 	collection := db.Database(viper.GetString("mongo_db")).Collection("users")
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to generate hash password")
+		return errors.Wrap(err, "failed to generate hash password")
 	}
-	res, err := collection.InsertOne(context.Background(), bson.M{"username": username, "password": string(hashedPassword)})
+	_, err = collection.InsertOne(context.Background(), bson.M{"username": username, "password": string(hashedPassword)})
 	if err != nil {
-		return "", errors.Wrap(err, "failed to insert user")
+		return errors.Wrap(err, "failed to insert user")
 	}
-	id, ok := res.InsertedID.(primitive.ObjectID)
-	if !ok {
-		return "", errors.New("could not convert to string")
-	}
-	return id.Hex(), nil
+	return nil
 }
 
-func (db *DB) CreateUserWithPhone(phone string) (string, error) {
-	collection := db.Database("demo").Collection("users")
-	res, err := collection.InsertOne(context.Background(), bson.M{"phone": phone, "verified": false})
-	if err != nil {
-		return "", errors.Wrap(err, "failed to insert user")
-	}
-	id, ok := res.InsertedID.(primitive.ObjectID)
-	if !ok {
-		return "", errors.New("could not convert to string")
-	}
-	return id.Hex(), nil
-}
+// func (db *DB) GetUserByPhoneNumber(phone string) (User, error) {
+// 	var result User
+// 	collection := db.Database(viper.GetString("mongo_db")).Collection("users")
+// 	err := collection.FindOne(context.Background(), bson.M{"phone": phone}).Decode(&result)
+// 	if err != nil {
+// 		if err == mongo.ErrNoDocuments {
+// 			return User{}, nil
+// 		}
+// 		return User{}, err
+// 	}
+// 	return result, nil
+// }
+
+// func (db *DB) GetUserByEmail(email string) (*User, error) {
+// 	var result *User
+// 	collection := db.Database(viper.GetString("mongo_db")).Collection("users")
+// 	err := collection.FindOne(context.Background(), bson.M{"email": email}).Decode(result)
+// 	if err != nil {
+// 		if err == mongo.ErrNoDocuments {
+// 			return nil, nil
+// 		}
+// 		return nil, err
+// 	}
+// 	return result, nil
+// }
+
+// func (db *DB) CreateUserWithPhone(phone string) (string, error) {
+// 	collection := db.Database("demo").Collection("users")
+// 	res, err := collection.InsertOne(context.Background(), bson.M{"phone": phone, "verified": false})
+// 	if err != nil {
+// 		return "", errors.Wrap(err, "failed to insert user")
+// 	}
+// 	id, ok := res.InsertedID.(primitive.ObjectID)
+// 	if !ok {
+// 		return "", errors.New("could not convert to string")
+// 	}
+// 	return id.Hex(), nil
+// }

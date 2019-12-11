@@ -1,4 +1,4 @@
-mongo_url: mongodb://mongo:27017/
+mongo_url: mongodb://127.0.0.1:27017/
 mongo_db: demo
 jwt_secret: ZK4xpg643&&&
 csrf_secret: 87382abaa5fcb9de2bba0253d212b0fb8c4b6b4ea6e159c36e508b01902f6842dbd2c7c895da5d583596a8851ef25df47b0de7be62eeddd2e7f3e81af99da066
